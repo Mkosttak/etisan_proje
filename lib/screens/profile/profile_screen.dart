@@ -103,9 +103,9 @@ class ProfileScreen extends StatelessWidget {
             // User Info
             Container(
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.getCardColor(context),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.grey200),
+                border: Border.all(color: AppColors.getBorder(context)),
               ),
               child: Column(
                 children: [
@@ -160,9 +160,9 @@ class ProfileScreen extends StatelessWidget {
             // Settings
             Container(
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.getCardColor(context),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.grey200),
+                border: Border.all(color: AppColors.getBorder(context)),
               ),
               child: Column(
                 children: [
@@ -244,45 +244,50 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildInfoTile(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.grey500, size: 24),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.grey600,
-                    fontSize: 12,
+    return Builder(
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.getIconColor(context), size: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: AppColors.getTextSecondary(context),
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.getTextPrimary(context),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSettingTile(IconData icon, String title, {VoidCallback? onTap}) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.grey700),
-      title: Text(title),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.grey400),
-      onTap: onTap,
+    return Builder(
+      builder: (context) => ListTile(
+        leading: Icon(icon, color: AppColors.getIconColor(context)),
+        title: Text(title, style: TextStyle(color: AppColors.getTextPrimary(context))),
+        trailing: Icon(Icons.chevron_right, color: AppColors.getIconColor(context)),
+        onTap: onTap,
+      ),
     );
   }
 
@@ -292,21 +297,23 @@ class ProfileScreen extends StatelessWidget {
     bool value,
     Function(bool) onChanged,
   ) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.grey700),
-      title: Text(title),
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeColor: AppColors.primaryOrange,
+    return Builder(
+      builder: (context) => ListTile(
+        leading: Icon(icon, color: AppColors.getIconColor(context)),
+        title: Text(title, style: TextStyle(color: AppColors.getTextPrimary(context))),
+        trailing: Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppColors.primaryOrange,
+        ),
       ),
     );
   }
 
   Widget _buildLanguageTile(BuildContext context, ThemeProvider themeProvider) {
     return ListTile(
-      leading: const Icon(Icons.language, color: AppColors.grey700),
-      title: Text(AppStrings.tr['language']!),
+      leading: Icon(Icons.language, color: AppColors.getIconColor(context)),
+      title: Text(AppStrings.tr['language']!, style: TextStyle(color: AppColors.getTextPrimary(context))),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

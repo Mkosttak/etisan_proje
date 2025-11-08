@@ -72,7 +72,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
     final user = authProvider.currentUser!;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: AppColors.getBackground(context),
       appBar: AppBar(
         toolbarHeight: 0,
         automaticallyImplyLeading: false,

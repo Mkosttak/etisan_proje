@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ..sort((a, b) => a.mealDate.compareTo(b.mealDate));
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: AppColors.getBackground(context),
       body: RefreshIndicator(
         onRefresh: _loadData,
         color: AppColors.primaryOrange,
@@ -100,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 opacity: _fadeAnimation,
                 child: SlideTransition(
                   position: _slideAnimation,
-                  child: _buildHeroSection(user),
+                  child: _buildHeroSection(context, user),
                 ),
               ),
             ),
@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             SliverToBoxAdapter(
               child: FadeTransition(
                 opacity: _fadeAnimation,
-                child: _buildUpcomingReservations(upcomingReservations),
+                child: _buildUpcomingReservations(context, upcomingReservations),
               ),
             ),
 
@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildHeroSection(user) {
+  Widget _buildHeroSection(BuildContext context, user) {
     final hour = DateTime.now().hour;
     String greeting;
     IconData greetingIcon;
@@ -143,14 +143,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.primaryOrange,
-            Color(0xFFFFA726),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: AppColors.getHeroGradient(context),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -315,17 +308,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildUpcomingReservations(List upcomingReservations) {
+  Widget _buildUpcomingReservations(BuildContext context, List upcomingReservations) {
     if (upcomingReservations.isEmpty) {
       return Container(
         margin: const EdgeInsets.all(20),
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.getCardColor(context),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppColors.getShadow(context),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -346,21 +339,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Henüz Rezervasyon Yok',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.grey900,
+                color: AppColors.getTextPrimary(context),
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Bugün için bir yemek rezervasyonu yapın!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.grey600,
+                color: AppColors.getTextSecondary(context),
               ),
             ),
           ],
@@ -368,20 +361,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       );
     }
 
-    return Container(
-      margin: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Yaklaşan Rezervasyonlar',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.grey900,
+                  color: AppColors.getTextPrimary(context),
                 ),
               ),
               TextButton(
@@ -392,16 +385,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          ...upcomingReservations.map((reservation) {
-            return _buildReservationCard(reservation);
-          }).toList(),
-        ],
-      ),
+        ),
+        ...upcomingReservations.map((reservation) {
+          return _buildReservationCard(context, reservation);
+        }).toList(),
+      ],
     );
   }
 
-  Widget _buildReservationCard(reservation) {
+  Widget _buildReservationCard(BuildContext context, reservation) {
     Color periodColor;
     IconData periodIcon;
     
@@ -424,13 +416,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.getShadow(context),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -468,10 +460,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     children: [
                       Text(
                         reservation.mealName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.grey900,
+                          color: AppColors.getTextPrimary(context),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -480,15 +472,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           Icon(
                             Icons.location_on,
                             size: 14,
-                            color: AppColors.grey600,
+                            color: AppColors.getTextSecondary(context),
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               reservation.cafeteriaName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.grey600,
+                                color: AppColors.getTextSecondary(context),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -502,14 +494,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           Icon(
                             Icons.access_time,
                             size: 14,
-                            color: AppColors.grey600,
+                            color: AppColors.getTextSecondary(context),
                           ),
                           const SizedBox(width: 4),
                           Text(
                             Helpers.formatDate(reservation.mealDate, 'dd MMM, HH:mm'),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.grey600,
+                              color: AppColors.getTextSecondary(context),
                             ),
                           ),
                         ],
@@ -532,7 +524,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     Icon(
                       Icons.arrow_forward_ios,
                       size: 14,
-                      color: AppColors.grey400,
+                      color: AppColors.getIconColor(context),
                     ),
                   ],
                 ),

@@ -88,7 +88,7 @@ class _ReservationListScreenState extends State<ReservationListScreen>
       ..sort((a, b) => b.mealDate.compareTo(a.mealDate));
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceLight,
+      backgroundColor: AppColors.getBackground(context),
       body: SafeArea(
         child: AppPageContainer(
           padding: const EdgeInsets.symmetric(vertical: 16),

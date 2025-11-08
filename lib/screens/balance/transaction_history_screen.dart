@@ -18,20 +18,22 @@ class TransactionHistoryScreen extends StatelessWidget {
         title: Text(AppStrings.tr['transactionHistory']!),
       ),
       body: transactionProvider.transactions.isEmpty
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.receipt_long, size: 64, color: AppColors.grey400),
-                  SizedBox(height: 16),
-                  Text(
-                    'Henüz işlem geçmişi yok',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.grey600,
+          ? Builder(
+              builder: (context) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.receipt_long, size: 64, color: AppColors.getIconColor(context)),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Henüz işlem geçmişi yok',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.getTextSecondary(context),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             )
           : ListView.builder(
@@ -47,54 +49,59 @@ class TransactionHistoryScreen extends StatelessWidget {
   }
 
   Widget _buildTransactionTile(TransactionModel transaction) {
-    final isCredit = transaction.isCredit;
-    final icon = isCredit ? Icons.add_circle : Icons.remove_circle;
-    final color = isCredit ? AppColors.success : AppColors.error;
+    return Builder(
+      builder: (context) {
+        final isCredit = transaction.isCredit;
+        final icon = isCredit ? Icons.add_circle : Icons.remove_circle;
+        final color = isCredit ? AppColors.success : AppColors.error;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  transaction.description,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  Helpers.formatDate(transaction.createdAt, 'MMM dd, yyyy HH:mm'),
-                  style: const TextStyle(
-                    color: AppColors.grey500,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.getCardColor(context),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.getBorder(context)),
           ),
-          Text(
-            '${isCredit ? "+" : ""}${Helpers.formatCurrency(transaction.amount)}',
-            style: TextStyle(
-              color: color,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 32),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      transaction.description,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.getTextPrimary(context),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      Helpers.formatDate(transaction.createdAt, 'MMM dd, yyyy HH:mm'),
+                      style: TextStyle(
+                        color: AppColors.getTextSecondary(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '${isCredit ? "+" : ""}${Helpers.formatCurrency(transaction.amount)}',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

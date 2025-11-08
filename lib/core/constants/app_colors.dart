@@ -44,9 +44,9 @@ class AppColors {
   static const Color dinner = Color(0xFF8B5CF6);
   
   // Background Colors
-  static const Color backgroundLight = Color(0xFFFFFFFF);
+  static const Color backgroundLight = Color(0xFFF8FAFC);
   static const Color backgroundDark = Color(0xFF0F172A);
-  static const Color surfaceLight = Color(0xFFF8FAFC);
+  static const Color surfaceLight = Color(0xFFFFFFFF);
   static const Color surfaceDark = Color(0xFF1E293B);
   
   // Reservation Status Colors
@@ -74,5 +74,157 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+  // ========== CONTEXT-AWARE DYNAMIC COLORS ==========
+  
+  /// Background color based on theme
+  static Color getBackground(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? backgroundDark 
+        : backgroundLight;
+  }
+
+  /// Surface color based on theme
+  static Color getSurface(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? surfaceDark 
+        : surfaceLight;
+  }
+
+  /// Card color based on theme
+  static Color getCardColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? const Color(0xFF1E293B) 
+        : white;
+  }
+
+  /// Primary text color based on theme
+  static Color getTextPrimary(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey50 
+        : grey900;
+  }
+
+  /// Secondary text color based on theme
+  static Color getTextSecondary(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey400 
+        : grey600;
+  }
+
+  /// Tertiary text color based on theme
+  static Color getTextTertiary(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey500 
+        : grey500;
+  }
+
+  /// Border color based on theme
+  static Color getBorder(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey700 
+        : grey200;
+  }
+
+  /// Divider color based on theme
+  static Color getDivider(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey800 
+        : grey100;
+  }
+
+  /// Icon color based on theme
+  static Color getIconColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey300 
+        : grey600;
+  }
+
+  /// Overlay color based on theme (for hover, pressed states)
+  static Color getOverlay(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? white.withOpacity(0.1) 
+        : black.withOpacity(0.05);
+  }
+
+  /// Shadow color based on theme
+  static Color getShadow(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? black.withOpacity(0.3) 
+        : black.withOpacity(0.1);
+  }
+
+  /// Input fill color based on theme
+  static Color getInputFill(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey800 
+        : grey50;
+  }
+
+  /// Shimmer base color based on theme
+  static Color getShimmerBase(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey800 
+        : grey200;
+  }
+
+  /// Shimmer highlight color based on theme
+  static Color getShimmerHighlight(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey700 
+        : grey100;
+  }
+
+  /// App bar background based on theme
+  static Color getAppBarBackground(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? surfaceDark 
+        : white;
+  }
+
+  /// Bottom navigation background based on theme
+  static Color getBottomNavBackground(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? surfaceDark 
+        : white;
+  }
+
+  /// Chip background based on theme
+  static Color getChipBackground(BuildContext context, {bool isSelected = false}) {
+    if (isSelected) return primaryOrange;
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey800 
+        : grey100;
+  }
+
+  /// Chip text color based on theme
+  static Color getChipText(BuildContext context, {bool isSelected = false}) {
+    if (isSelected) return white;
+    return Theme.of(context).brightness == Brightness.dark 
+        ? grey200 
+        : grey700;
+  }
+
+  /// Gradient for cards based on theme
+  static LinearGradient getCardGradient(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? darkGradient 
+        : const LinearGradient(
+            colors: [Color(0xFFFFFFFF), Color(0xFFF8FAFC)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+  }
+
+  /// Hero gradient based on theme
+  static LinearGradient getHeroGradient(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? const LinearGradient(
+            colors: [Color(0xFFFDB913), Color(0xFFD9940A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : primaryGradient;
+  }
 }
 

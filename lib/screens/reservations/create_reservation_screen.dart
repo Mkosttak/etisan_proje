@@ -66,7 +66,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
     final mealProvider = Provider.of<MealProvider>(context);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: AppColors.getBackground(context),
       appBar: AppBar(
         toolbarHeight: 0,
         automaticallyImplyLeading: false,

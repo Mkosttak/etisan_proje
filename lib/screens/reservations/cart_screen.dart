@@ -18,7 +18,7 @@ class CartScreen extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: AppColors.getBackground(context),
       appBar: AppBar(
         title: const Text('Sepetim'),
         backgroundColor: AppColors.primaryOrange,

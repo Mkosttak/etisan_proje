@@ -120,11 +120,11 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.getBottomNavBackground(context),
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: AppColors.getShadow(context).withOpacity(0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
               spreadRadius: 0,
@@ -147,10 +147,10 @@ class _MainNavigationState extends State<MainNavigation> {
                       height: 1.2,
                     );
                   }
-                  return const TextStyle(
+                  return TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.grey600,
+                    color: AppColors.getTextSecondary(context),
                     overflow: TextOverflow.ellipsis,
                     height: 1.2,
                   );
@@ -174,7 +174,7 @@ class _MainNavigationState extends State<MainNavigation> {
               NavigationDestination(
                 icon: Icon(
                   Icons.home_outlined,
-                  color: _currentIndex == 0 ? AppColors.primaryOrange : AppColors.grey600,
+                  color: _currentIndex == 0 ? AppColors.primaryOrange : AppColors.getIconColor(context),
                 ),
                 selectedIcon: Icon(
                   Icons.home,
@@ -185,7 +185,7 @@ class _MainNavigationState extends State<MainNavigation> {
               NavigationDestination(
                 icon: Icon(
                   Icons.restaurant_menu_outlined,
-                  color: _currentIndex == 1 ? AppColors.primaryOrange : AppColors.grey600,
+                  color: _currentIndex == 1 ? AppColors.primaryOrange : AppColors.getIconColor(context),
                 ),
                 selectedIcon: Icon(
                   Icons.restaurant_menu,
@@ -196,7 +196,7 @@ class _MainNavigationState extends State<MainNavigation> {
               NavigationDestination(
                 icon: Icon(
                   Icons.add_circle_outline,
-                  color: _currentIndex == 2 ? AppColors.primaryOrange : AppColors.grey600,
+                  color: _currentIndex == 2 ? AppColors.primaryOrange : AppColors.getIconColor(context),
                 ),
                 selectedIcon: Icon(
                   Icons.add_circle,
@@ -207,7 +207,7 @@ class _MainNavigationState extends State<MainNavigation> {
               NavigationDestination(
                 icon: Icon(
                   Icons.swap_horiz_outlined,
-                  color: _currentIndex == 3 ? AppColors.primaryOrange : AppColors.grey600,
+                  color: _currentIndex == 3 ? AppColors.primaryOrange : AppColors.getIconColor(context),
                 ),
                 selectedIcon: Icon(
                   Icons.swap_horiz,
