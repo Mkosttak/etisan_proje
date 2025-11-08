@@ -153,7 +153,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.2),
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -172,9 +172,9 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
               // Content
               Expanded(
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.backgroundLight,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: AppColors.getBackground(context),
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),
                     ),
@@ -203,7 +203,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                               // Recent Transactions
                               _buildRecentTransactions(recentTransactions),
                               
-                              const SizedBox(height: 100),
+                              const SizedBox(height: 20),
                             ],
                           ),
                         ),
@@ -231,7 +231,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF667EEA).withOpacity(0.4),
+            color: const Color(0xFF667EEA).withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -251,7 +251,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
@@ -286,7 +286,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -301,7 +301,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -325,48 +325,49 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
   }
 
   Widget _buildLoadBalanceSection() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.grey200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.add_circle, color: AppColors.primaryOrange, size: 24),
-              SizedBox(width: 12),
-              Text(
-                'Bakiye Yükle',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.grey900,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          
-          // Quick Amount Buttons
-          const Text(
-            'Hızlı Seçim',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.grey700,
+    return Builder(
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.getCardColor(context),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.getBorder(context)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.getShadow(context),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.add_circle, color: AppColors.primaryOrange, size: 24),
+                const SizedBox(width: 12),
+                Text(
+                  'Bakiye Yükle',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.getTextPrimary(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            
+            // Quick Amount Buttons
+            Text(
+              'Hızlı Seçim',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.getTextSecondary(context),
+              ),
+            ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 10,
@@ -379,17 +380,23 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primaryOrange : AppColors.grey100,
+                    color: isSelected 
+                        ? AppColors.primaryOrange 
+                        : AppColors.getChipBackground(context),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? AppColors.primaryOrange : AppColors.grey300,
+                      color: isSelected 
+                          ? AppColors.primaryOrange 
+                          : AppColors.getBorder(context),
                       width: 2,
                     ),
                   ),
                   child: Text(
                     '${amount.toInt()} TL',
                     style: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.grey700,
+                      color: isSelected 
+                          ? Colors.white 
+                          : AppColors.getChipText(context),
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                     ),
@@ -401,246 +408,259 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
           
           const SizedBox(height: 20),
           
-          // Custom Amount Input
-          const Text(
-            'veya Özel Tutar',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.grey700,
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _amountController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(
-              hintText: 'Tutar giriniz',
-              prefixIcon: const Icon(Icons.attach_money, color: AppColors.grey500),
-              suffixText: 'TL',
-              filled: true,
-              fillColor: AppColors.grey50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.grey300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.grey300),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.primaryOrange, width: 2),
+            // Custom Amount Input
+            Text(
+              'veya Özel Tutar',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.getTextSecondary(context),
               ),
             ),
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          Text(
-            'Min: ${AppConstants.minBalanceLoad} TL - Max: ${AppConstants.maxBalanceLoad} TL',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.grey600,
-            ),
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Load Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _loadBalance,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryOrange,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
+            const SizedBox(height: 12),
+            TextField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                hintText: 'Tutar giriniz',
+                prefixIcon: Icon(Icons.attach_money, color: AppColors.getIconColor(context)),
+                suffixText: 'TL',
+                filled: true,
+                fillColor: AppColors.getInputFill(context),
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.getBorder(context)),
                 ),
-                elevation: 0,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.getBorder(context)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primaryOrange, width: 2),
+                ),
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.check_circle, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'Bakiye Yükle',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.getTextPrimary(context),
+              ),
             ),
-          ),
-        ],
+            
+            const SizedBox(height: 16),
+            
+            Text(
+              'Min: ${AppConstants.minBalanceLoad} TL - Max: ${AppConstants.maxBalanceLoad} TL',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.getTextSecondary(context),
+              ),
+            ),
+          
+            const SizedBox(height: 24),
+            
+            // Load Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _loadBalance,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryOrange,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.check_circle, size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Bakiye Yükle',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildRecentTransactions(List<TransactionModel> transactions) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.grey200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return Builder(
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.getCardColor(context),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.getBorder(context)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.getShadow(context),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.history, color: AppColors.primaryOrange, size: 24),
-                  SizedBox(width: 12),
-                  Text(
-                    'Son İşlemler',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.grey900,
+          Builder(
+            builder: (context) => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.history, color: AppColors.primaryOrange, size: 24),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Son İşlemler',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.getTextPrimary(context),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const TransactionHistoryScreen()),
-                  );
-                },
-                child: const Text('Tümünü Gör'),
-              ),
-            ],
+                  ],
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const TransactionHistoryScreen()),
+                    );
+                  },
+                  child: Text('Tümünü Gör', style: TextStyle(color: AppColors.primaryOrange)),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           if (transactions.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(40),
-              child: Column(
-                children: [
-                  Icon(Icons.receipt_long, size: 64, color: AppColors.grey300),
-                  SizedBox(height: 16),
-                  Text(
-                    'Henüz işlem yok',
-                    style: TextStyle(
-                      color: AppColors.grey600,
-                      fontSize: 16,
+            Builder(
+              builder: (context) => Padding(
+                padding: const EdgeInsets.all(40),
+                child: Column(
+                  children: [
+                    Icon(Icons.receipt_long, size: 64, color: AppColors.getIconColor(context)),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Henüz işlem yok',
+                      style: TextStyle(
+                        color: AppColors.getTextSecondary(context),
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             )
           else
             ...transactions.map((transaction) => _buildTransactionItem(transaction)),
         ],
       ),
+      ),
     );
   }
 
   Widget _buildTransactionItem(TransactionModel transaction) {
-    final isPositive = transaction.amount > 0;
-    
-    IconData icon;
-    Color iconColor;
-    
-    switch (transaction.type) {
-      case 'load':
-        icon = Icons.add_circle;
-        iconColor = AppColors.secondaryGreen;
-        break;
-      case 'reservation':
-        icon = Icons.restaurant;
-        iconColor = AppColors.primaryOrange;
-        break;
-      case 'refund':
-        icon = Icons.refresh;
-        iconColor = AppColors.secondaryBlue;
-        break;
-      default:
-        icon = Icons.attach_money;
-        iconColor = AppColors.grey500;
-    }
+    return Builder(
+      builder: (context) {
+        final isPositive = transaction.amount > 0;
+        
+        IconData icon;
+        Color iconColor;
+        
+        switch (transaction.type) {
+          case 'load':
+            icon = Icons.add_circle;
+            iconColor = AppColors.secondaryGreen;
+            break;
+          case 'reservation':
+            icon = Icons.restaurant;
+            iconColor = AppColors.primaryOrange;
+            break;
+          case 'refund':
+            icon = Icons.refresh;
+            iconColor = AppColors.secondaryBlue;
+            break;
+          default:
+            icon = Icons.attach_money;
+            iconColor = AppColors.grey500;
+        }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.getInputFill(context),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.getBorder(context)),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  transaction.description,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.grey900,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  Helpers.formatDate(transaction.createdAt, 'dd MMM yyyy, HH:mm'),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.grey600,
-                  ),
+                child: Icon(icon, color: iconColor, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      transaction.description,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.getTextPrimary(context),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      Helpers.formatDate(transaction.createdAt, 'dd MMM yyyy, HH:mm'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.getTextSecondary(context),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Text(
+                '${isPositive ? '+' : ''}${Helpers.formatCurrency(transaction.amount)}',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isPositive ? AppColors.secondaryGreen : AppColors.secondaryRed,
+                ),
+              ),
+            ],
           ),
-          Text(
-            '${isPositive ? '+' : ''}${Helpers.formatCurrency(transaction.amount)}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isPositive ? AppColors.secondaryGreen : AppColors.secondaryRed,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

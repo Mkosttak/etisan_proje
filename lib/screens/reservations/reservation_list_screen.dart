@@ -125,16 +125,6 @@ class _ReservationListScreenState extends State<ReservationListScreen>
                 ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const CreateReservationScreen()),
-          );
-        },
-        backgroundColor: AppColors.primaryOrange,
-        icon: const Icon(Icons.add),
-        label: const Text('Yeni Rezervasyon'),
-      ),
     );
   }
 
@@ -168,36 +158,34 @@ class _ReservationListScreenState extends State<ReservationListScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(36),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFEDD5), Color(0xFFFFFBF5)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          Builder(
+            builder: (context) => Container(
+              padding: const EdgeInsets.all(36),
+              decoration: BoxDecoration(
+                color: AppColors.primaryOrange.withOpacity(0.1),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryOrange.withOpacity(0.2),
+                    blurRadius: 25,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryOrange.withOpacity(0.2),
-                  blurRadius: 25,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Icon(
-              isUpcoming ? Icons.event_available : Icons.history_toggle_off,
-              size: 60,
-              color: AppColors.primaryOrange,
+              child: Icon(
+                isUpcoming ? Icons.event_available : Icons.history_toggle_off,
+                size: 60,
+                color: AppColors.primaryOrange,
+              ),
             ),
           ),
           const SizedBox(height: 24),
           Text(
             isUpcoming ? 'Henüz aktif rezervasyon yok' : 'Geçmiş kaydın yok',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: AppColors.grey900,
+              color: AppColors.getTextPrimary(context),
             ),
             textAlign: TextAlign.center,
           ),
@@ -206,9 +194,9 @@ class _ReservationListScreenState extends State<ReservationListScreen>
             isUpcoming
                 ? 'Bugün menü seçerek yerini garantileyebilirsin.'
                 : 'Yeni rezervasyonların burada listelenecek.',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: AppColors.grey600,
+              color: AppColors.getTextSecondary(context),
             ),
             textAlign: TextAlign.center,
           ),
@@ -221,34 +209,31 @@ class _ReservationListScreenState extends State<ReservationListScreen>
     final statusMeta = _statusMeta(reservation.status);
     final periodMeta = _periodMeta(reservation.mealPeriod);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ReservationDetailScreen(reservation: reservation),
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Colors.white, Color(0xFFFFFBF5)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 18,
-                offset: const Offset(0, 10),
+    return Builder(
+      builder: (context) => Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ReservationDetailScreen(reservation: reservation),
               ),
-            ],
-          ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: AppColors.getCardGradient(context),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.getShadow(context),
+                  blurRadius: 18,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -269,37 +254,37 @@ class _ReservationListScreenState extends State<ReservationListScreen>
                       children: [
                         Text(
                           reservation.mealName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.grey900,
+                            color: AppColors.getTextPrimary(context),
                           ),
                         ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
                             Icon(Icons.calendar_month,
-                                size: 14, color: AppColors.grey500),
+                                size: 14, color: AppColors.getIconColor(context)),
                             const SizedBox(width: 4),
                             Text(
                               Helpers.formatDate(
                                 reservation.mealDate,
                                 'dd MMM yyyy',
                               ),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.grey600,
+                                color: AppColors.getTextSecondary(context),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Icon(Icons.access_time,
-                                size: 14, color: AppColors.grey500),
+                                size: 14, color: AppColors.getIconColor(context)),
                             const SizedBox(width: 4),
                             Text(
                               Helpers.formatDate(reservation.mealDate, 'HH:mm'),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.grey600,
+                                color: AppColors.getTextSecondary(context),
                               ),
                             ),
                           ],
@@ -384,30 +369,33 @@ class _ReservationListScreenState extends State<ReservationListScreen>
           ),
         ),
       ),
+    ),
     );
   }
 
   Widget _buildInfoItem(IconData icon, String text, {bool alignEnd = false}) {
-    return Row(
-      mainAxisAlignment:
-          alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
-      children: [
-        Icon(icon, size: 16, color: AppColors.grey600),
-        const SizedBox(width: 6),
-        Flexible(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.grey700,
+    return Builder(
+      builder: (context) => Row(
+        mainAxisAlignment:
+            alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: AppColors.getIconColor(context)),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.getTextSecondary(context),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: alignEnd ? TextAlign.end : TextAlign.start,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: alignEnd ? TextAlign.end : TextAlign.start,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -495,99 +483,146 @@ class _ReservationListScreenState extends State<ReservationListScreen>
     required String value,
     required IconData icon,
   }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.primaryOrange.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(14),
+    return Builder(
+      builder: (context) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: Colors.white, size: 20),
               ),
-              child: Icon(icon, color: AppColors.primaryOrange, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.grey900,
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.grey600,
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildTabSwitcher() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: TabBar(
-        controller: _tabController,
-        indicator: BoxDecoration(
-          color: AppColors.primaryOrange,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        labelColor: Colors.white,
-        unselectedLabelColor: AppColors.grey600,
-        labelStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-        ),
-        unselectedLabelStyle: const TextStyle(fontSize: 14),
-        indicatorPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-        tabs: const [
-          Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.upcoming, size: 18),
-                SizedBox(width: 6),
-                Text('Aktif'),
-              ],
+    return Builder(
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.getCardColor(context),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.getShadow(context),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
+          ],
+        ),
+        child: TabBar(
+          controller: _tabController,
+          indicator: BoxDecoration(
+            color: AppColors.primaryOrange,
+            borderRadius: BorderRadius.circular(16),
           ),
-          Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.history, size: 18),
-                SizedBox(width: 6),
-                Text('Geçmiş'),
-              ],
+          labelColor: Colors.white,
+          unselectedLabelColor: AppColors.getTextSecondary(context),
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontSize: 14,
+            color: AppColors.getTextSecondary(context),
+          ),
+          indicatorPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          tabs: [
+            Builder(
+              builder: (context) {
+                final isSelected = _tabController.index == 0;
+                return Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.upcoming,
+                        size: 18,
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.getIconColor(context),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Aktif',
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.getTextSecondary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          ),
-        ],
+            Builder(
+              builder: (context) {
+                final isSelected = _tabController.index == 1;
+                return Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.history,
+                        size: 18,
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.getIconColor(context),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Geçmiş',
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.getTextSecondary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

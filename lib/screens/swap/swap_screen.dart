@@ -98,7 +98,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: TabBar(
@@ -108,7 +108,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -171,7 +171,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
           Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: AppColors.secondaryGreen.withOpacity(0.1),
+              color: AppColors.secondaryGreen.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -181,22 +181,26 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Takas Yok',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.grey900,
+          Builder(
+            builder: (context) => Text(
+              'Takas Yok',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.getTextPrimary(context),
+              ),
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Şu anda takasa açık rezervasyon bulunmuyor',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.grey600,
+          Builder(
+            builder: (context) => Text(
+              'Şu anda takasa açık rezervasyon bulunmuyor',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.getTextSecondary(context),
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -232,11 +236,11 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.getCardColor(context),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.secondaryGreen.withOpacity(0.15),
+            color: AppColors.getShadow(context),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -253,7 +257,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
                 end: Alignment.bottomRight,
                 colors: [
                   AppColors.secondaryGreen,
-                  AppColors.secondaryGreen.withOpacity(0.85),
+                  AppColors.secondaryGreen.withValues(alpha: 0.85),
                 ],
               ),
               borderRadius: const BorderRadius.only(
@@ -270,7 +274,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -308,10 +312,10 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.secondaryBlue.withOpacity(0.12),
+                        color: AppColors.secondaryBlue.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: AppColors.secondaryBlue.withOpacity(0.3),
+                          color: AppColors.secondaryBlue.withValues(alpha: 0.3),
                           width: 1.5,
                         ),
                       ),
@@ -341,7 +345,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryOrange.withOpacity(0.15),
+                          color: AppColors.primaryOrange.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
@@ -374,17 +378,17 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: periodColor.withOpacity(0.08),
+                      color: periodColor.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: periodColor.withOpacity(0.2),
+                        color: periodColor.withValues(alpha: 0.2),
                         width: 1,
                       ),
                     ),
                     child: Text(
                       reservation.mealDescription!,
                       style: TextStyle(
-                        color: AppColors.grey700,
+                        color: AppColors.getTextSecondary(context),
                         fontSize: 13,
                         height: 1.4,
                       ),
@@ -438,7 +442,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           elevation: 3,
-                          shadowColor: AppColors.secondaryGreen.withOpacity(0.4),
+                          shadowColor: AppColors.secondaryGreen.withValues(alpha: 0.4),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -498,7 +502,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
               child: Container(
                 width: 65,
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
+                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isSelected ? Colors.white : Colors.transparent,
@@ -655,7 +659,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
+          color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? Colors.white : Colors.transparent,

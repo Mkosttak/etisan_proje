@@ -432,44 +432,48 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
   }
 
   Widget _buildEmptyState(String period) {
-    String periodName = period == 'breakfast'
-        ? 'Kahvaltı'
-        : period == 'lunch'
-            ? 'Öğle'
-            : 'Akşam';
+    return Builder(
+      builder: (context) {
+        String periodName = period == 'breakfast'
+            ? 'Kahvaltı'
+            : period == 'lunch'
+                ? 'Öğle'
+                : 'Akşam';
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            period == 'breakfast'
-                ? Icons.coffee
-                : period == 'lunch'
-                    ? Icons.lunch_dining
-                    : Icons.dinner_dining,
-            size: 80,
-            color: AppColors.grey300,
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                period == 'breakfast'
+                    ? Icons.coffee
+                    : period == 'lunch'
+                        ? Icons.lunch_dining
+                        : Icons.dinner_dining,
+                size: 80,
+                color: AppColors.getIconColor(context),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '$periodName için yemek yok',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.getTextPrimary(context),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Başka bir tarih deneyin',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.getTextSecondary(context),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            '$periodName için yemek yok',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.grey600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Başka bir tarih deneyin',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.grey500,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -496,11 +500,11 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
         return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.getCardColor(context),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: AppColors.getShadow(context),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -564,9 +568,9 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
                 if (meal.description.isNotEmpty)
                   Text(
                     meal.description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.grey700,
+                      color: AppColors.getTextSecondary(context),
                       height: 1.4,
                     ),
                     maxLines: 2,

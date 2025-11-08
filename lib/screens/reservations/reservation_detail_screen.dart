@@ -41,7 +41,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color, color.withOpacity(0.7)],
+                  colors: [color, color.withValues(alpha: 0.7)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -78,18 +78,19 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.getCardColor(context),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.grey200),
+                border: Border.all(color: AppColors.getBorder(context)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Rezervasyon Bilgileri',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: AppColors.getTextPrimary(context),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -98,7 +99,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                     'Saat',
                     Helpers.formatDate(widget.reservation.mealDate, 'HH:mm'),
                   ),
-                  const Divider(height: 32),
+                  Divider(height: 32, color: AppColors.getDivider(context)),
                   _buildDetailRow(
                     Icons.restaurant,
                     'Öğün',
@@ -108,20 +109,20 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                             ? 'Öğle Yemeği'
                             : 'Akşam Yemeği',
                   ),
-                  const Divider(height: 32),
+                  Divider(height: 32, color: AppColors.getDivider(context)),
                   _buildDetailRow(
                     Icons.location_on,
                     'Yemekhane',
                     widget.reservation.cafeteriaName,
                   ),
-                  const Divider(height: 32),
+                  Divider(height: 32, color: AppColors.getDivider(context)),
                   _buildDetailRow(
                     Icons.account_balance_wallet,
                     'Ücret',
                     Helpers.formatCurrency(widget.reservation.price),
                     valueColor: AppColors.primaryOrange,
                   ),
-                  const Divider(height: 32),
+                  Divider(height: 32, color: AppColors.getDivider(context)),
                   _buildDetailRow(
                     Icons.info_outline,
                     'Durum',
@@ -149,17 +150,18 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: AppColors.getCardColor(context),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.grey200),
+                  border: Border.all(color: AppColors.getBorder(context)),
                 ),
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       'QR Kod',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: AppColors.getTextPrimary(context),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -168,19 +170,28 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.grey300, width: 2),
+                        border: Border.all(color: AppColors.getBorder(context), width: 2),
                       ),
                       child: QrImageView(
                         data: widget.reservation.id,
                         version: QrVersions.auto,
                         size: 200,
+                        backgroundColor: AppColors.white,
+                        eyeStyle: const QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: AppColors.black,
+                        ),
+                        dataModuleStyle: const QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: AppColors.black,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Yemek almak için bu kodu gösterin',
                       style: TextStyle(
-                        color: AppColors.grey600,
+                        color: AppColors.getTextSecondary(context),
                         fontSize: 12,
                       ),
                       textAlign: TextAlign.center,
@@ -249,9 +260,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                 margin: const EdgeInsets.only(top: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.secondaryGreen.withOpacity(0.1),
+                  color: AppColors.secondaryGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.secondaryGreen.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.secondaryGreen.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   children: [
@@ -275,9 +286,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                 margin: const EdgeInsets.only(top: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.1),
+                  color: AppColors.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   children: [
@@ -307,28 +318,30 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
     String value, {
     Color? valueColor,
   }) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: AppColors.grey500),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.grey600,
-              fontSize: 14,
+    return Builder(
+      builder: (context) => Row(
+        children: [
+          Icon(icon, size: 20, color: AppColors.getIconColor(context)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: AppColors.getTextSecondary(context),
+                fontSize: 14,
+              ),
             ),
           ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: valueColor ?? AppColors.grey900,
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? AppColors.getTextPrimary(context),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

@@ -68,30 +68,30 @@ class CartScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: AppColors.grey100,
+              color: AppColors.primaryOrange.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.shopping_cart_outlined,
               size: 80,
-              color: AppColors.grey400,
+              color: AppColors.primaryOrange,
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Sepetiniz Boş',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppColors.grey900,
+              color: AppColors.getTextPrimary(context),
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Henüz sepetinize ürün eklemediniz',
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.grey600,
+              color: AppColors.getTextSecondary(context),
             ),
           ),
           const SizedBox(height: 32),
@@ -137,11 +137,11 @@ class CartScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.getShadow(context),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -161,8 +161,8 @@ class CartScreen extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        periodColor.withOpacity(0.2),
-                        periodColor.withOpacity(0.1),
+                        periodColor.withValues(alpha: 0.2),
+                        periodColor.withValues(alpha: 0.1),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -182,10 +182,10 @@ class CartScreen extends StatelessWidget {
                       children: [
                         Text(
                           meal.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.grey900,
+                            color: AppColors.getTextPrimary(context),
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -196,7 +196,7 @@ class CartScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: periodColor.withOpacity(0.1),
+                                color: periodColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -217,10 +217,10 @@ class CartScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.secondaryGreen.withOpacity(0.15),
+                                  color: AppColors.secondaryGreen.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
-                                    color: AppColors.secondaryGreen.withOpacity(0.5),
+                                    color: AppColors.secondaryGreen.withValues(alpha: 0.5),
                                     width: 1,
                                   ),
                                 ),
@@ -249,9 +249,9 @@ class CartScreen extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 Helpers.formatDate(meal.mealDate, 'dd MMM yyyy'),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.grey600,
+                                  color: AppColors.getTextSecondary(context),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -285,7 +285,7 @@ class CartScreen extends StatelessWidget {
               },
               icon: const Icon(Icons.delete_outline),
               style: IconButton.styleFrom(
-                backgroundColor: AppColors.error.withOpacity(0.1),
+                backgroundColor: AppColors.error.withValues(alpha: 0.1),
                 padding: const EdgeInsets.all(8),
               ),
               iconSize: 22,
@@ -304,10 +304,10 @@ class CartScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.getCardColor(context),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: AppColors.getShadow(context),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -321,12 +321,12 @@ class CartScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Toplam',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.grey700,
+                    color: AppColors.getTextSecondary(context),
                   ),
                 ),
                 Text(
@@ -342,13 +342,13 @@ class CartScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(Icons.account_balance_wallet, size: 16, color: AppColors.grey600),
+                Icon(Icons.account_balance_wallet, size: 16, color: AppColors.getIconColor(context)),
                 const SizedBox(width: 8),
                 Text(
                   'Bakiye: ${Helpers.formatCurrency(user.balance)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.grey600,
+                    color: AppColors.getTextSecondary(context),
                   ),
                 ),
               ],
