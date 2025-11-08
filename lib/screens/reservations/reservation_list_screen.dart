@@ -28,8 +28,8 @@ class _ReservationListScreenState extends State<ReservationListScreen>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _animationController.forward();
     _loadData();
@@ -44,7 +44,8 @@ class _ReservationListScreenState extends State<ReservationListScreen>
 
   Future<void> _loadData() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final reservationProvider = Provider.of<ReservationProvider>(context, listen: false);
+    final reservationProvider =
+        Provider.of<ReservationProvider>(context, listen: false);
 
     if (authProvider.currentUser != null) {
       await reservationProvider.loadReservations(authProvider.currentUser!.id);
@@ -60,41 +61,35 @@ class _ReservationListScreenState extends State<ReservationListScreen>
     final upcomingReservations = reservationProvider.upcomingReservations
         .where((r) => r.userId == user.id && r.status == 'reserved')
         .toList();
-
     final pastReservations = reservationProvider.pastReservations
         .where((r) => r.userId == user.id)
         .toList();
 
-    return Scaffold(
-      backgroundColor: AppColors.surfaceLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeroSection(
-              upcomingReservations.length,
-              pastReservations.length,
-            ),
-            const SizedBox(height: 16),
-            _buildTabSwitcher(
-              upcomingReservations.length,
-              pastReservations.length,
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildReservationList(upcomingReservations, true),
-                    _buildReservationList(pastReservations, false),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return Scaffold(
+      backgroundColor: AppColors.surfaceLight,
+      appBar: AppBar(
+        title: const Text('Rezervasyonlarım'),
+        backgroundColor: AppColors.primaryOrange,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Aktif'),
+            Tab(text: 'Geçmiş'),
+          ],
+        ),
+      ),
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildReservationList(upcomingReservations, true),
+              _buildReservationList(pastReservations, false),
+            ],
+          ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.of(context).push(
@@ -110,38 +105,53 @@ class _ReservationListScreenState extends State<ReservationListScreen>
 
   Widget _buildReservationList(List reservations, bool isUpcoming) {
     if (reservations.isEmpty) {
-      return Center(
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(40),
+              padding: const EdgeInsets.all(36),
               decoration: BoxDecoration(
-                color: AppColors.grey100,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFEDD5), Color(0xFFFFFBF5)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryOrange.withOpacity(0.18),
+                    blurRadius: 25,
+                  ),
+                ],
               ),
               child: Icon(
-                isUpcoming ? Icons.event_note : Icons.history,
-                size: 80,
-                color: AppColors.grey400,
+                isUpcoming ? Icons.event_available : Icons.history_toggle_off,
+                size: 64,
+                color: AppColors.primaryOrange,
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              isUpcoming ? 'Aktif Rezervasyon Yok' : 'Geçmiş Rezervasyon Yok',
+              isUpcoming ? 'Hen�z aktif rezervasyon yok' : 'Ge�mi� kayd�n yok',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.grey900,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Henüz rezervasyon bulunmuyor',
-              style: TextStyle(
+            Text(
+              isUpcoming
+                  ? 'Bug�n bir men� se�ip yerini garantileyebilirsin.'
+                  : 'Yeni rezervasyonlar�n burada listelenecek.',
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.grey600,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -151,13 +161,13 @@ class _ReservationListScreenState extends State<ReservationListScreen>
     return RefreshIndicator(
       onRefresh: _loadData,
       color: AppColors.primaryOrange,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(20),
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+        physics: const BouncingScrollPhysics(),
         itemCount: reservations.length,
-        itemBuilder: (context, index) {
-          final reservation = reservations[index];
-          return _buildReservationCard(reservation, isUpcoming);
-        },
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) =>
+            _buildReservationCard(reservations[index], isUpcoming),
       ),
     );
   }
@@ -176,12 +186,12 @@ class _ReservationListScreenState extends State<ReservationListScreen>
       case 'consumed':
         statusColor = AppColors.secondaryGreen;
         statusIcon = Icons.restaurant;
-        statusText = 'Tüketildi';
+        statusText = 'T�ketildi';
         break;
       case 'cancelled':
         statusColor = AppColors.secondaryRed;
         statusIcon = Icons.cancel;
-        statusText = 'İptal';
+        statusText = '�ptal';
         break;
       case 'transferred':
         statusColor = AppColors.secondaryPurple;
@@ -216,21 +226,25 @@ class _ReservationListScreenState extends State<ReservationListScreen>
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [Colors.white, Color(0xFFFFFBF5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
+          borderRadius: BorderRadius.circular(24),
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -238,7 +252,6 @@ class _ReservationListScreenState extends State<ReservationListScreen>
               ),
             );
           },
-          borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -249,24 +262,10 @@ class _ReservationListScreenState extends State<ReservationListScreen>
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            periodColor.withOpacity(0.8),
-                            periodColor,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: periodColor.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        color: periodColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Icon(periodIcon, color: Colors.white, size: 28),
+                      child: Icon(periodIcon, color: periodColor, size: 24),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -276,28 +275,31 @@ class _ReservationListScreenState extends State<ReservationListScreen>
                           Text(
                             reservation.mealName,
                             style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                               color: AppColors.grey900,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.calendar_today, size: 14, color: AppColors.grey500),
-                              const SizedBox(width: 6),
+                              Icon(Icons.calendar_month,
+                                  size: 14, color: AppColors.grey500),
+                              const SizedBox(width: 4),
                               Text(
-                                Helpers.formatDate(reservation.mealDate, 'dd MMM yyyy'),
+                                Helpers.formatDate(
+                                  reservation.mealDate,
+                                  'dd MMM yyyy',
+                                ),
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: AppColors.grey600,
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Icon(Icons.access_time, size: 14, color: AppColors.grey500),
-                              const SizedBox(width: 6),
+                              Icon(Icons.access_time,
+                                  size: 14, color: AppColors.grey500),
+                              const SizedBox(width: 4),
                               Text(
                                 Helpers.formatDate(reservation.mealDate, 'HH:mm'),
                                 style: const TextStyle(
@@ -311,10 +313,11 @@ class _ReservationListScreenState extends State<ReservationListScreen>
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: statusColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -334,42 +337,33 @@ class _ReservationListScreenState extends State<ReservationListScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.grey50,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          Icons.location_on,
-                          reservation.cafeteriaName,
-                        ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.location_on_outlined,
+                        reservation.cafeteriaName,
                       ),
-                      Container(
-                        width: 1,
-                        height: 30,
-                        color: AppColors.grey300,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.account_balance_wallet_outlined,
+                        Helpers.formatCurrency(reservation.price),
+                        alignEnd: true,
                       ),
-                      Expanded(
-                        child: _buildInfoItem(
-                          Icons.account_balance_wallet,
-                          Helpers.formatCurrency(reservation.price),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 if (isUpcoming && reservation.isTransferOpen) ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: AppColors.warning.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: AppColors.warning.withOpacity(0.3),
                       ),
@@ -380,7 +374,7 @@ class _ReservationListScreenState extends State<ReservationListScreen>
                         Icon(Icons.swap_horiz, size: 16, color: AppColors.warning),
                         SizedBox(width: 8),
                         Text(
-                          'Takasa Açık',
+                          'Takasa A��k',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -399,9 +393,10 @@ class _ReservationListScreenState extends State<ReservationListScreen>
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String text) {
+  Widget _buildInfoItem(IconData icon, String text, {bool alignEnd = false}) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment:
+          alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
         Icon(icon, size: 16, color: AppColors.grey600),
         const SizedBox(width: 6),
@@ -415,10 +410,194 @@ class _ReservationListScreenState extends State<ReservationListScreen>
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            textAlign: alignEnd ? TextAlign.end : TextAlign.start,
           ),
         ),
       ],
     );
   }
-}
 
+  Widget _buildHeroSection(int activeCount, int pastCount) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [AppColors.primaryOrange, AppColors.secondaryOrange],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryOrange.withOpacity(0.3),
+              blurRadius: 30,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Rezervasyonlar�m',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Plan�n� kolayca y�net',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.calendar_month, color: Colors.white),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                _buildHeroStat(
+                  label: 'Aktif',
+                  value: activeCount.toString(),
+                  icon: Icons.event_available,
+                ),
+                const SizedBox(width: 12),
+                _buildHeroStat(
+                  label: 'Ge�mi�',
+                  value: pastCount.toString(),
+                  icon: Icons.history,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroStat({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryOrange.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: AppColors.primaryOrange, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.grey900,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.grey600,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabSwitcher(int upcomingCount, int pastCount) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: TabBar(
+          controller: _tabController,
+          indicator: BoxDecoration(
+            color: AppColors.primaryOrange,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          labelColor: Colors.white,
+          unselectedLabelColor: AppColors.grey600,
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+          unselectedLabelStyle: const TextStyle(fontSize: 14),
+          indicatorPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          tabs: [
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.upcoming, size: 18),
+                  const SizedBox(width: 6),
+                  Text('Aktif ($upcomingCount)'),
+                ],
+              ),
+            ),
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.history, size: 18),
+                  const SizedBox(width: 6),
+                  Text('Ge�mi� ($pastCount)'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
