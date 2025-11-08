@@ -875,7 +875,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
                 spacing: 10,
                 runSpacing: 10,
                 children: [
-                  _buildWebTag(Icons.schedule, meal.servingTime),
+                  _buildWebTag(Icons.schedule, Helpers.formatDate(meal.mealDate, 'HH:mm')),
                   _buildWebTag(
                     Icons.restaurant,
                     _getMealTypeLabel(meal.mealType),

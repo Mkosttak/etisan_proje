@@ -536,45 +536,45 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
             border: Border.all(color: borderColor),
             boxShadow: shadow,
           ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.add_circle, color: AppColors.primaryOrange, size: 24),
-                const SizedBox(width: 12),
-                Text(
-                  'Bakiye Yükle',
-                  style: TextStyle(
-                    fontSize: isWeb ? 22 : 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.getTextPrimary(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.add_circle, color: AppColors.primaryOrange, size: 24),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Bakiye Yükle',
+                    style: TextStyle(
+                      fontSize: isWeb ? 22 : 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.getTextPrimary(context),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            
-            // Quick Amount Buttons
-            Text(
-              'Hızlı Seçim',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.getTextSecondary(context),
+                ],
               ),
-            ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: quickAmounts.map((amount) {
-              final isSelected = _amountController.text == amount.toStringAsFixed(0);
-              return InkWell(
-                onTap: () => _selectQuickAmount(amount),
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              const SizedBox(height: 20),
+              
+              // Quick Amount Buttons
+              Text(
+                'Hızlı Seçim',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.getTextSecondary(context),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: quickAmounts.map((amount) {
+                  final isSelected = _amountController.text == amount.toStringAsFixed(0);
+                  return InkWell(
+                    onTap: () => _selectQuickAmount(amount),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.primaryOrange
@@ -603,111 +603,112 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                           fontSize: 15,
                         ),
                       ),
-                ),
-              );
-            }).toList(),
-          ),
-          
-          const SizedBox(height: 20),
-          
-            // Custom Amount Input
-            Text(
-              'veya Özel Tutar',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.getTextSecondary(context),
+                    ),
+                  );
+                }).toList(),
               ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(
-                hintText: 'Tutar giriniz',
-                prefixIcon: Icon(Icons.attach_money, color: AppColors.getIconColor(context)),
-                suffixText: 'TL',
-                filled: true,
-                fillColor:
-                    isWeb ? AppColors.webBackground : AppColors.getInputFill(context),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: isWeb ? AppColors.grey200 : AppColors.getBorder(context),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: isWeb ? AppColors.grey200 : AppColors.getBorder(context),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primaryOrange, width: 2),
+              
+              const SizedBox(height: 20),
+              
+              // Custom Amount Input
+              Text(
+                'veya Özel Tutar',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.getTextSecondary(context),
                 ),
               ),
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.getTextPrimary(context),
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            Text(
-              'Min: ${AppConstants.minBalanceLoad} TL - Max: ${AppConstants.maxBalanceLoad} TL',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.getTextSecondary(context),
-              ),
-            ),
-          
-            const SizedBox(height: 24),
-            
-            // Load Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _loadBalance,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryOrange,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
+              const SizedBox(height: 12),
+              TextField(
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: InputDecoration(
+                  hintText: 'Tutar giriniz',
+                  prefixIcon: Icon(Icons.attach_money, color: AppColors.getIconColor(context)),
+                  suffixText: 'TL',
+                  filled: true,
+                  fillColor:
+                      isWeb ? AppColors.webBackground : AppColors.getInputFill(context),
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isWeb ? AppColors.grey200 : AppColors.getBorder(context),
+                    ),
                   ),
-                  elevation: 0,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isWeb ? AppColors.grey200 : AppColors.getBorder(context),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryOrange, width: 2),
+                  ),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.check_circle, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'Bakiye Yükle',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.getTextPrimary(context),
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+              
+              const SizedBox(height: 16),
+              
+              Text(
+                'Min: ${AppConstants.minBalanceLoad} TL - Max: ${AppConstants.maxBalanceLoad} TL',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.getTextSecondary(context),
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Load Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _loadBalance,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryOrange,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.check_circle, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'Bakiye Yükle',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

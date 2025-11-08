@@ -494,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        reservation.mealTitle,
+                        reservation.mealName,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
