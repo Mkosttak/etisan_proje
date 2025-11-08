@@ -42,7 +42,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color, color.withOpacity(0.7)],
+                  colors: [color, color.withValues(alpha: 0.7)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -246,9 +246,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                 margin: const EdgeInsets.only(top: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.secondaryGreen.withOpacity(0.1),
+                  color: AppColors.secondaryGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.secondaryGreen.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.secondaryGreen.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   children: [
@@ -272,9 +272,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                 margin: const EdgeInsets.only(top: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.1),
+                  color: AppColors.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   children: [
