@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/layout/app_page_container.dart';
 import '../../core/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/transaction_provider.dart';
@@ -131,7 +132,15 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
     final user = authProvider.currentUser!;
     final transactionProvider = Provider.of<TransactionProvider>(context);
     final recentTransactions = transactionProvider.transactions.take(3).toList();
+    final isWeb = Helpers.isWeb(context);
 
+    return isWeb
+        ? _buildWebLayout(context, user, recentTransactions)
+        : _buildMobileLayout(context, user, recentTransactions);
+  }
+
+  Widget _buildMobileLayout(BuildContext context, user,
+      List<TransactionModel> recentTransactions) {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -144,7 +153,6 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
         child: SafeArea(
           child: Column(
             children: [
-              // Header
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Row(
@@ -168,8 +176,6 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                   ],
                 ),
               ),
-
-              // Content
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -190,19 +196,11 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // Balance Card
                               _buildBalanceCard(user),
-                              
                               const SizedBox(height: 24),
-                              
-                              // Load Balance Section
                               _buildLoadBalanceSection(),
-                              
                               const SizedBox(height: 24),
-                              
-                              // Recent Transactions
                               _buildRecentTransactions(recentTransactions),
-                              
                               const SizedBox(height: 20),
                             ],
                           ),
@@ -219,7 +217,192 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildBalanceCard(user) {
+  Widget _buildWebLayout(BuildContext context, user,
+      List<TransactionModel> recentTransactions) {
+    return Scaffold(
+      backgroundColor: AppColors.webBackground,
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: AppPageContainer(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Bakiye Yükleme',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.getTextPrimary(context),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Hoş geldiniz, ${user.fullName}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.getTextSecondary(context),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: AppColors.webCard,
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 28,
+                          offset: const Offset(0, 18),
+                        ),
+                      ],
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isWide = constraints.maxWidth > 900;
+
+                        final formColumn = Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildBalanceCard(user, isWeb: true),
+                            const SizedBox(height: 24),
+                            _buildLoadBalanceSection(isWeb: true),
+                          ],
+                        );
+
+                        final transactionsColumn = _buildRecentTransactions(
+                          recentTransactions,
+                          isWeb: true,
+                        );
+
+                        if (isWide) {
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 3, child: formColumn),
+                              const SizedBox(width: 32),
+                              Expanded(flex: 2, child: transactionsColumn),
+                            ],
+                          );
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            formColumn,
+                            const SizedBox(height: 32),
+                            transactionsColumn,
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBalanceCard(user, {bool isWeb = false}) {
+    if (isWeb) {
+      final firstName = user.fullName.split(' ').first;
+      return Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: AppColors.grey200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 22,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryOrange.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.account_balance_wallet,
+                    color: AppColors.primaryOrange,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hoş geldiniz, $firstName',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.grey600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Mevcut bakiyeniz',
+                      style: TextStyle(
+                        color: AppColors.grey500,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              Helpers.formatCurrency(user.balance),
+              style: const TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.w800,
+                color: AppColors.primaryOrange,
+                letterSpacing: -1.2,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: const [
+                Icon(
+                  Icons.shield_outlined,
+                  color: AppColors.grey500,
+                  size: 20,
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Ödeme altyapımız ETİSAN güvencesiyle korunmaktadır.',
+                    style: TextStyle(
+                      color: AppColors.grey500,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -324,22 +507,35 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildLoadBalanceSection() {
+  Widget _buildLoadBalanceSection({bool isWeb = false}) {
     return Builder(
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppColors.getCardColor(context),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.getBorder(context)),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.getShadow(context),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+      builder: (context) {
+        final cardColor = isWeb ? Colors.white : AppColors.getCardColor(context);
+        final borderColor = isWeb ? AppColors.grey200 : AppColors.getBorder(context);
+        final shadow = isWeb
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 18,
+                  offset: const Offset(0, 10),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: AppColors.getShadow(context),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ];
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: borderColor),
+            boxShadow: shadow,
+          ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -350,7 +546,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                 Text(
                   'Bakiye Yükle',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: isWeb ? 22 : 20,
                     fontWeight: FontWeight.bold,
                     color: AppColors.getTextPrimary(context),
                   ),
@@ -379,28 +575,34 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isSelected 
-                        ? AppColors.primaryOrange 
-                        : AppColors.getChipBackground(context),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected 
-                          ? AppColors.primaryOrange 
-                          : AppColors.getBorder(context),
-                      width: 2,
-                    ),
-                  ),
-                  child: Text(
-                    '${amount.toInt()} TL',
-                    style: TextStyle(
-                      color: isSelected 
-                          ? Colors.white 
-                          : AppColors.getChipText(context),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primaryOrange
+                            : (isWeb
+                                ? AppColors.webBackground
+                                : AppColors.getChipBackground(context)),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primaryOrange
+                              : (isWeb
+                                  ? AppColors.grey200
+                                  : AppColors.getBorder(context)),
+                          width: 2,
+                        ),
+                      ),
+                      child: Text(
+                        '${amount.toInt()} TL',
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : (isWeb
+                                  ? AppColors.grey700
+                                  : AppColors.getChipText(context)),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
                 ),
               );
             }).toList(),
@@ -427,14 +629,19 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                 prefixIcon: Icon(Icons.attach_money, color: AppColors.getIconColor(context)),
                 suffixText: 'TL',
                 filled: true,
-                fillColor: AppColors.getInputFill(context),
+                fillColor:
+                    isWeb ? AppColors.webBackground : AppColors.getInputFill(context),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.getBorder(context)),
+                  borderSide: BorderSide(
+                    color: isWeb ? AppColors.grey200 : AppColors.getBorder(context),
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.getBorder(context)),
+                  borderSide: BorderSide(
+                    color: isWeb ? AppColors.grey200 : AppColors.getBorder(context),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -504,82 +711,101 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildRecentTransactions(List<TransactionModel> transactions) {
+  Widget _buildRecentTransactions(List<TransactionModel> transactions,
+      {bool isWeb = false}) {
     return Builder(
       builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(isWeb ? 24 : 20),
         decoration: BoxDecoration(
-          color: AppColors.getCardColor(context),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.getBorder(context)),
+          color: isWeb ? Colors.white : AppColors.getCardColor(context),
+          borderRadius: BorderRadius.circular(isWeb ? 24 : 20),
+          border: Border.all(
+            color: isWeb ? AppColors.grey200 : AppColors.getBorder(context),
+          ),
           boxShadow: [
-            BoxShadow(
-              color: AppColors.getShadow(context),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
+            (isWeb
+                ? BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                  )
+                : BoxShadow(
+                    color: AppColors.getShadow(context),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ))
           ],
         ),
       child: Column(
         children: [
-          Builder(
-            builder: (context) => Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.history, color: AppColors.primaryOrange, size: 24),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Son İşlemler',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.getTextPrimary(context),
-                      ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.receipt_long,
+                      color: AppColors.primaryOrange, size: 24),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Son İşlemler',
+                    style: TextStyle(
+                      fontSize: isWeb ? 20 : 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.getTextPrimary(context),
                     ),
-                  ],
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const TransactionHistoryScreen()),
-                    );
-                  },
-                  child: Text('Tümünü Gör', style: TextStyle(color: AppColors.primaryOrange)),
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const TransactionHistoryScreen()),
+                  );
+                },
+                child: const Text('Tümünü Gör'),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           if (transactions.isEmpty)
-            Builder(
-              builder: (context) => Padding(
-                padding: const EdgeInsets.all(40),
-                child: Column(
-                  children: [
-                    Icon(Icons.receipt_long, size: 64, color: AppColors.getIconColor(context)),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Henüz işlem yok',
-                      style: TextStyle(
-                        color: AppColors.getTextSecondary(context),
-                        fontSize: 16,
-                      ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: isWeb
+                    ? AppColors.webBackground
+                    : AppColors.getInputFill(context),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.receipt_long,
+                      size: 48, color: AppColors.getIconColor(context)),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Henüz işlem yok',
+                    style: TextStyle(
+                      color: AppColors.getTextSecondary(context),
+                      fontSize: 15,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             )
           else
-            ...transactions.map((transaction) => _buildTransactionItem(transaction)),
+            ...transactions.map(
+              (transaction) =>
+                  _buildTransactionItem(transaction, isWeb: isWeb),
+            ),
         ],
       ),
       ),
     );
   }
 
-  Widget _buildTransactionItem(TransactionModel transaction) {
+  Widget _buildTransactionItem(TransactionModel transaction,
+      {bool isWeb = false}) {
     return Builder(
       builder: (context) {
         final isPositive = transaction.amount > 0;
@@ -609,9 +835,11 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.getInputFill(context),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.getBorder(context)),
+            color: isWeb ? Colors.white : AppColors.getInputFill(context),
+            borderRadius: BorderRadius.circular(isWeb ? 16 : 12),
+            border: Border.all(
+              color: isWeb ? AppColors.grey200 : AppColors.getBorder(context),
+            ),
           ),
           child: Row(
             children: [

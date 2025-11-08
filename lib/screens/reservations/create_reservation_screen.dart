@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/layout/app_page_container.dart';
 import '../../core/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/meal_provider.dart';
@@ -64,7 +65,22 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
   @override
   Widget build(BuildContext context) {
     final mealProvider = Provider.of<MealProvider>(context);
+    final isWeb = Helpers.isWeb(context);
 
+    if (isWeb && mealProvider.selectedMealPeriod != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          mealProvider.setMealPeriodFilter(null);
+        }
+      });
+    }
+
+    return isWeb
+        ? _buildWebLayout(context, mealProvider)
+        : _buildMobileLayout(context, mealProvider);
+  }
+
+  Widget _buildMobileLayout(BuildContext context, MealProvider mealProvider) {
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
       appBar: AppBar(
@@ -76,79 +92,74 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
           preferredSize: const Size.fromHeight(280),
           child: SingleChildScrollView(
             child: Column(
-            children: [
-              const SizedBox(height: 16),
-              // Date Selector
-              _buildDateSelector(mealProvider),
-              const SizedBox(height: 12),
-              // Cafeteria Filters
-              _buildCafeteriaFilters(mealProvider),
-              const SizedBox(height: 8),
-              // Meal Type Filters
-              _buildCompactMealTypeFilters(mealProvider),
-              const SizedBox(height: 12),
-              // Meal Period Tabs
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+              children: [
+                const SizedBox(height: 16),
+                _buildDateSelector(mealProvider),
+                const SizedBox(height: 12),
+                _buildCafeteriaFilters(mealProvider),
+                const SizedBox(height: 8),
+                _buildCompactMealTypeFilters(mealProvider),
+                const SizedBox(height: 12),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    indicator: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    labelColor: AppColors.primaryOrange,
+                    unselectedLabelColor: Colors.white,
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                    unselectedLabelStyle: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+                    tabs: const [
+                      Tab(
+                        height: 50,
+                        icon: Icon(Icons.coffee, size: 20),
+                        text: 'Kahvaltı',
+                      ),
+                      Tab(
+                        height: 50,
+                        icon: Icon(Icons.lunch_dining, size: 20),
+                        text: 'Öğle',
+                      ),
+                      Tab(
+                        height: 50,
+                        icon: Icon(Icons.dinner_dining, size: 20),
+                        text: 'Akşam',
                       ),
                     ],
                   ),
-                  labelColor: AppColors.primaryOrange,
-                  unselectedLabelColor: Colors.white,
-                  labelStyle: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  dividerColor: Colors.transparent,
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 8),
-                  tabs: const [
-                    Tab(
-                      height: 50,
-                      icon: Icon(Icons.coffee, size: 20),
-                      text: 'Kahvaltı',
-                    ),
-                    Tab(
-                      height: 50,
-                      icon: Icon(Icons.lunch_dining, size: 20),
-                      text: 'Öğle',
-                    ),
-                    Tab(
-                      height: 50,
-                      icon: Icon(Icons.dinner_dining, size: 20),
-                      text: 'Akşam',
-                    ),
-                  ],
                 ),
-              ),
-              const SizedBox(height: 12),
-            ],
+                const SizedBox(height: 12),
+              ],
             ),
           ),
         ),
       ),
       body: Column(
         children: [
-          // Meals List
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -158,11 +169,62 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
                 _buildMealsList(mealProvider, 'dinner'),
               ],
             ),
-           ),
-         ],
-       ),
-     );
-   }
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWebLayout(BuildContext context, MealProvider mealProvider) {
+    return Scaffold(
+      backgroundColor: AppColors.webBackground,
+      body: SafeArea(
+        child: AppPageContainer(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildWebHeader(mealProvider),
+                const SizedBox(height: 24),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final useTwoColumns = constraints.maxWidth > 960;
+
+                    final filters = SizedBox(
+                      width: useTwoColumns ? 260 : double.infinity,
+                      child: _buildWebFilters(mealProvider),
+                    );
+
+                    if (useTwoColumns) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          filters,
+                          const SizedBox(width: 24),
+                          Expanded(child: _buildWebMealSections(mealProvider)),
+                        ],
+                      );
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        filters,
+                        const SizedBox(height: 24),
+                        _buildWebMealSections(mealProvider),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   // Cafeteria Filters (takas sayfası gibi)
   Widget _buildCafeteriaFilters(MealProvider mealProvider) {
@@ -294,7 +356,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
     IconData icon,
   ) {
     final isSelected = mealProvider.selectedMealType == type;
-    
+
     return InkWell(
       onTap: () {
         mealProvider.setMealTypeFilter(isSelected ? null : type);
@@ -331,6 +393,656 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildWebHeader(MealProvider mealProvider) {
+    final formattedDate = _formatWebDate(_selectedDate);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      decoration: BoxDecoration(
+        color: AppColors.webCard,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Menü - $formattedDate',
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Günün yemek seçeneklerini keşfet',
+                  style: TextStyle(
+                    color: AppColors.grey600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildWebDateButton(
+                Icons.chevron_left,
+                () => _changeDate(mealProvider, -1),
+              ),
+              const SizedBox(width: 12),
+              _buildWebDateButton(
+                Icons.chevron_right,
+                () => _changeDate(mealProvider, 1),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWebFilters(MealProvider mealProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildWebFilterGroup(
+          title: 'Yemekhane',
+          children: [
+            _buildWebFilterOption(
+              mealProvider,
+              'cafeteria-1',
+              'Merkez',
+              Icons.storefront,
+            ),
+            _buildWebFilterOption(
+              mealProvider,
+              'cafeteria-2',
+              'Mühendislik',
+              Icons.engineering,
+            ),
+            _buildWebFilterOption(
+              mealProvider,
+              'cafeteria-3',
+              'Tıp',
+              Icons.local_hospital,
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        _buildWebFilterGroup(
+          title: 'Diyet',
+          children: [
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _buildWebDietChip(
+                  mealProvider,
+                  null,
+                  'Hepsi',
+                  Icons.grid_view,
+                ),
+                _buildWebDietChip(
+                  mealProvider,
+                  'normal',
+                  'Normal',
+                  Icons.restaurant,
+                ),
+                _buildWebDietChip(
+                  mealProvider,
+                  'vegetarian',
+                  'Vejetaryen',
+                  Icons.eco,
+                ),
+                _buildWebDietChip(
+                  mealProvider,
+                  'vegan',
+                  'Vegan',
+                  Icons.spa,
+                ),
+                _buildWebDietChip(
+                  mealProvider,
+                  'gluten_free',
+                  'Glutensiz',
+                  Icons.grain,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWebFilterGroup({
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.webCard,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWebFilterOption(
+    MealProvider mealProvider,
+    String cafeteriaId,
+    String label,
+    IconData icon,
+  ) {
+    final isSelected = mealProvider.selectedCafeteriaId == cafeteriaId;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () {
+          if (!isSelected) {
+            mealProvider.setCafeteriaFilter(cafeteriaId);
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color:
+                isSelected ? AppColors.primaryOrange.withOpacity(0.12) : null,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.primaryOrange
+                  : AppColors.grey200,
+              width: 1.4,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color:
+                    isSelected ? AppColors.primaryOrange : AppColors.grey500,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight:
+                        isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected
+                        ? AppColors.primaryOrange
+                        : AppColors.grey700,
+                  ),
+                ),
+              ),
+              if (isSelected)
+                const Icon(
+                  Icons.check_circle,
+                  color: AppColors.primaryOrange,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWebDietChip(
+    MealProvider mealProvider,
+    String? type,
+    String label,
+    IconData icon,
+  ) {
+    final isSelected =
+        type == null ? mealProvider.selectedMealType == null : mealProvider.selectedMealType == type;
+
+    return FilterChip(
+      selected: isSelected,
+      onSelected: (_) {
+        if (type == null) {
+          mealProvider.setMealTypeFilter(null);
+        } else {
+          mealProvider.setMealTypeFilter(isSelected ? null : type);
+        }
+      },
+      avatar: Icon(
+        icon,
+        size: 18,
+        color: isSelected ? Colors.white : AppColors.primaryOrange,
+      ),
+      showCheckmark: false,
+      backgroundColor: AppColors.primaryOrange.withOpacity(0.08),
+      selectedColor: AppColors.primaryOrange,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : AppColors.primaryOrange,
+        fontWeight: FontWeight.w600,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      label: Text(label),
+    );
+  }
+
+  Widget _buildWebMealSections(MealProvider mealProvider) {
+    if (mealProvider.isLoading) {
+      return Container(
+        padding: const EdgeInsets.all(48),
+        decoration: BoxDecoration(
+          color: AppColors.webCard,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryOrange),
+        ),
+      );
+    }
+
+    if (mealProvider.errorMessage != null) {
+      return Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: AppColors.webCard,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.error.withOpacity(0.2)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.error),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                mealProvider.errorMessage!,
+                style: const TextStyle(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final sections = [
+      {'period': 'breakfast', 'title': 'Kahvaltı', 'icon': Icons.coffee},
+      {'period': 'lunch', 'title': 'Öğle Yemeği', 'icon': Icons.lunch_dining},
+      {'period': 'dinner', 'title': 'Akşam Yemeği', 'icon': Icons.dinner_dining},
+    ];
+
+    return Column(
+      children: [
+        for (var i = 0; i < sections.length; i++) ...[
+          _buildWebMealSection(mealProvider, sections[i]),
+          if (i != sections.length - 1) const SizedBox(height: 28),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildWebMealSection(
+    MealProvider mealProvider,
+    Map<String, dynamic> section,
+  ) {
+    final period = section['period'] as String;
+    final meals = mealProvider.meals
+        .where((meal) => meal.mealPeriod == period)
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: AppColors.webCard,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  section['icon'] as IconData,
+                  color: AppColors.primaryOrange,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                section['title'] as String,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Text(
+                  '${meals.length} seçenek',
+                  style: const TextStyle(
+                    color: AppColors.primaryOrange,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          if (meals.isEmpty)
+            _buildWebEmptyState(section['title'] as String)
+          else
+            Wrap(
+              spacing: 20,
+              runSpacing: 20,
+              children: meals.map(_buildWebMealCard).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWebMealCard(MealModel meal) {
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, child) {
+        final isInCart = cartProvider.isMealInCart(meal.id);
+
+        return Container(
+          width: 320,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.webCard,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.grey200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 18,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          meal.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          meal.description,
+                          style: const TextStyle(
+                            color: AppColors.grey600,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryOrange.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text(
+                      Helpers.formatCurrency(meal.reservationPrice),
+                      style: const TextStyle(
+                        color: AppColors.primaryOrange,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _buildWebTag(Icons.schedule, meal.servingTime),
+                  _buildWebTag(
+                    Icons.restaurant,
+                    _getMealTypeLabel(meal.mealType),
+                  ),
+                  _buildWebTag(
+                    Icons.people_alt_outlined,
+                    '${meal.availableSpots}/${meal.totalSpots} kontenjan',
+                  ),
+                  if (meal.allergens.isNotEmpty)
+                    _buildWebTag(
+                      Icons.warning_amber_rounded,
+                      'Alerjen: ${meal.allergens.join(', ')}',
+                    ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _addToCart(meal, isInCart),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primaryOrange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      icon: Icon(
+                        isInCart ? Icons.check : Icons.shopping_bag_outlined,
+                      ),
+                      label: Text(isInCart ? 'Sepette' : 'Sepete Ekle'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _quickReserve(meal),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: AppColors.primaryOrange),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        foregroundColor: AppColors.primaryOrange,
+                      ),
+                      icon: const Icon(Icons.flash_on),
+                      label: const Text('Hızlı Al'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildWebTag(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.grey100,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppColors.grey600),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.grey700,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWebEmptyState(String title) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.grey200),
+        borderRadius: BorderRadius.circular(24),
+        color: AppColors.webBackground,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.inbox_outlined,
+            size: 48,
+            color: AppColors.grey400,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '$title için menü bulunamadı',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Farklı bir tarih veya filtre deneyin.',
+            style: TextStyle(
+              color: AppColors.grey600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWebDateButton(IconData icon, VoidCallback onPressed) {
+    return SizedBox(
+      height: 44,
+      width: 44,
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          side: const BorderSide(color: AppColors.primaryOrange),
+        ),
+        onPressed: onPressed,
+        child: Icon(icon, color: AppColors.primaryOrange),
+      ),
+    );
+  }
+
+  void _changeDate(MealProvider mealProvider, int offsetDays) {
+    setState(() {
+      _selectedDate = _selectedDate.add(Duration(days: offsetDays));
+    });
+    mealProvider.setDateFilter(_selectedDate);
+  }
+
+  String _formatWebDate(DateTime date) {
+    return '${date.day} ${_getFullMonthName(date.month)} ${_getFullDayName(date.weekday)}';
+  }
+
+  String _getMealTypeLabel(String mealType) {
+    switch (mealType) {
+      case 'vegetarian':
+        return 'Vejetaryen';
+      case 'vegan':
+        return 'Vegan';
+      case 'gluten_free':
+        return 'Glutensiz';
+      default:
+        return 'Normal';
+    }
   }
 
 
@@ -936,6 +1648,37 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
         isError: true,
       );
     }
+  }
+
+  String _getFullDayName(int weekday) {
+    const days = [
+      'Pazartesi',
+      'Salı',
+      'Çarşamba',
+      'Perşembe',
+      'Cuma',
+      'Cumartesi',
+      'Pazar',
+    ];
+    return days[(weekday - 1) % days.length];
+  }
+
+  String _getFullMonthName(int month) {
+    const months = [
+      'Ocak',
+      'Şubat',
+      'Mart',
+      'Nisan',
+      'Mayıs',
+      'Haziran',
+      'Temmuz',
+      'Ağustos',
+      'Eylül',
+      'Ekim',
+      'Kasım',
+      'Aralık',
+    ];
+    return months[(month - 1) % months.length];
   }
 
   String _getDayName(int weekday) {
