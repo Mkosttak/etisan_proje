@@ -185,6 +185,7 @@ class MockDataService {
 
   // Mock Reservations
   List<ReservationModel> getMockReservations(String userId) {
+    print('🗄️ MockDataService: getMockReservations çağrıldı - userId: $userId');
     final now = DateTime.now();
     
     // Kendi rezervasyonları
@@ -506,7 +507,11 @@ class MockDataService {
       ),
     ];
     
-    return [...myReservations, ...transferOpenReservations];
+    final allReservations = [...myReservations, ...transferOpenReservations];
+    print('📦 MockDataService: Toplam ${allReservations.length} rezervasyon döndürülüyor');
+    print('   👤 Kendi rezervasyonları: ${myReservations.length}');
+    print('   🔄 Takas rezervasyonları: ${transferOpenReservations.length}');
+    return allReservations;
   }
 
   // Mock Transactions

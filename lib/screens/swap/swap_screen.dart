@@ -475,7 +475,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
   // Date Selector - Küçük
   Widget _buildDateSelector() {
     return SizedBox(
-      height: 65,
+      height: 70,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -494,12 +494,12 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
                   _selectedDate = date;
                 });
               },
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               child: Container(
-                width: 60,
+                width: 65,
                 decoration: BoxDecoration(
                   color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isSelected ? Colors.white : Colors.transparent,
                     width: 2,

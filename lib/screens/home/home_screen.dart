@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/helpers.dart';
-import '../../core/layout/app_page_container.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reservation_provider.dart';
 import '../../providers/meal_provider.dart';
 import '../balance/balance_screen.dart';
 import '../reservations/reservation_detail_screen.dart';
-import '../reservations/reservation_list_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../profile/profile_screen.dart';
 
@@ -22,17 +20,22 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
     _animationController.forward();
     _loadData();
   }
@@ -73,294 +76,300 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       return const AdminDashboardScreen();
     }
 
-    final upcomingReservations = reservationProvider.upcomingReservations
-        .where((r) => r.userId == user.id && r.status == 'reserved')
-        .take(3)
+    final allUserReservations = reservationProvider.reservations
+        .where((r) => r.userId == user.id)
         .toList();
+    
+    final upcomingReservations = allUserReservations
+        .where((r) => r.status == 'reserved' && !r.isPast)
+        .take(3)
+        .toList()
+      ..sort((a, b) => a.mealDate.compareTo(b.mealDate));
 
     return Scaffold(
-      body: AppPageContainer(
-        useSafeArea: false,
-        child: RefreshIndicator(
-          onRefresh: _loadData,
-          color: AppColors.primaryOrange,
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-            // Modern App Bar
-            SliverAppBar(
-              expandedHeight: 160,
-              floating: false,
-              pinned: true,
-              backgroundColor: AppColors.primaryOrange,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+      backgroundColor: AppColors.backgroundLight,
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        color: AppColors.primaryOrange,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // Modern Hero Section
+            SliverToBoxAdapter(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: _buildHeroSection(user),
+                ),
               ),
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [AppColors.primaryOrange, AppColors.secondaryOrange],
+            ),
+
+            // Upcoming Reservations
+            SliverToBoxAdapter(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: _buildUpcomingReservations(upcomingReservations),
+              ),
+            ),
+
+            // Bottom Padding
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 100),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroSection(user) {
+    final hour = DateTime.now().hour;
+    String greeting;
+    IconData greetingIcon;
+    
+    if (hour < 12) {
+      greeting = 'Günaydın';
+      greetingIcon = Icons.wb_sunny;
+    } else if (hour < 17) {
+      greeting = 'İyi günler';
+      greetingIcon = Icons.wb_sunny_outlined;
+    } else {
+      greeting = 'İyi akşamlar';
+      greetingIcon = Icons.nights_stay;
+    }
+
+    return Container(
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            AppColors.primaryOrange,
+            Color(0xFFFFA726),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryOrange.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(greetingIcon, color: Colors.white, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      greeting,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      user.fullName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              // Profile Avatar
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  );
+                },
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.end,
+                  child: const Icon(
+                    Icons.person,
+                    color: AppColors.primaryOrange,
+                    size: 28,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          // Balance Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.account_balance_wallet,
+                    color: AppColors.primaryOrange,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Bakiyeniz',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        Helpers.formatCurrency(user.balance),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const BalanceScreen()),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Hoş Geldin 👋',
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      user.fullName,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => const ProfileScreen(),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.person_outline, color: Colors.white),
-                                tooltip: 'Profil',
-                                style: IconButton.styleFrom(
-                                  backgroundColor: Colors.white.withOpacity(0.15),
-                                ),
-                              ),
-                            ],
+                          Icon(
+                            Icons.add,
+                            color: AppColors.primaryOrange,
+                            size: 20,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Yükle',
+                            style: TextStyle(
+                              color: AppColors.primaryOrange,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-
-            // Content
-            SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(
-                    children: [
-                      Transform.translate(
-                        offset: const Offset(0, -30),
-                        child: _buildBalanceCard(user),
-                      ),
-                      
-                      const SizedBox(height: 12),
-                      
-                      // Upcoming Reservations
-                      if (upcomingReservations.isNotEmpty)
-                        _buildUpcomingReservations(upcomingReservations),
-                      
-                      const SizedBox(height: 80),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-  }
-
-
-  Widget _buildBalanceCard(user) {
-    final balanceText = '₺${user.balance.toStringAsFixed(2)}';
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF8B5CF6), Color(0xFF5B21B6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF5B21B6).withOpacity(0.35),
-            blurRadius: 30,
-            offset: const Offset(0, 18),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            left: -30,
-            bottom: -30,
-            child: Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Bakiyeniz',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.credit_card,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                balanceText,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -1.2,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Kart ID: ${user.studentNumber ?? user.id}',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const BalanceScreen()),
-                    );
-                  },
-                  icon: const Icon(Icons.add, size: 20),
-                  label: const Text('Bakiye Yükle'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF5B21B6),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.shield_outlined,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text(
-                      'Rezervasyon ödemeleriniz güvenle bakiyeden düşer.',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
           ),
         ],
       ),
     );
   }
 
-  // Quick action & statistics widgets removed in new design
-  Widget _buildUpcomingReservations(List reservations) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+  Widget _buildUpcomingReservations(List upcomingReservations) {
+    if (upcomingReservations.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.primaryOrange.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.event_busy,
+                size: 48,
+                color: AppColors.primaryOrange,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Henüz Rezervasyon Yok',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.grey900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Bugün için bir yemek rezervasyonu yapın!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.grey600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -377,19 +386,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ReservationListScreen()),
-                  );
+                  // Navigate to all reservations
                 },
                 child: const Text('Tümü'),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          ...reservations.map((reservation) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildReservationCard(reservation),
-          )),
+          ...upcomingReservations.map((reservation) {
+            return _buildReservationCard(reservation);
+          }).toList(),
         ],
       ),
     );
@@ -397,96 +403,146 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Widget _buildReservationCard(reservation) {
     Color periodColor;
+    IconData periodIcon;
+    
     switch (reservation.mealPeriod) {
       case 'breakfast':
         periodColor = AppColors.breakfast;
+        periodIcon = Icons.coffee;
         break;
       case 'lunch':
         periodColor = AppColors.lunch;
+        periodIcon = Icons.lunch_dining;
         break;
       case 'dinner':
         periodColor = AppColors.dinner;
+        periodIcon = Icons.dinner_dining;
         break;
       default:
         periodColor = AppColors.grey500;
+        periodIcon = Icons.restaurant;
     }
 
-    return InkWell(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ReservationDetailScreen(reservation: reservation),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        );
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ReservationDetailScreen(reservation: reservation),
+              ),
+            );
+          },
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: periodColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                reservation.mealPeriod == 'breakfast'
-                    ? Icons.coffee
-                    : reservation.mealPeriod == 'lunch'
-                        ? Icons.lunch_dining
-                        : Icons.dinner_dining,
-                color: periodColor,
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    reservation.mealName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.grey900,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Icon
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: periodColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    Helpers.formatDate(reservation.mealDate, 'dd MMM yyyy, HH:mm'),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.grey600,
-                    ),
+                  child: Icon(periodIcon, color: periodColor, size: 28),
+                ),
+                const SizedBox(width: 16),
+                // Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        reservation.mealName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.grey900,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 14,
+                            color: AppColors.grey600,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              reservation.cafeteriaName,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.grey600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            size: 14,
+                            color: AppColors.grey600,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            Helpers.formatDate(reservation.mealDate, 'dd MMM, HH:mm'),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.grey600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                // Price
+                Column(
+                  children: [
+                    Text(
+                      Helpers.formatCurrency(reservation.price),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: periodColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 14,
+                      color: AppColors.grey400,
+                    ),
+                  ],
+                ),
+              ],
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: AppColors.grey400,
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
+
+

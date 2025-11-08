@@ -46,14 +46,20 @@ class ReservationProvider with ChangeNotifier {
 
   // Load Reservations
   Future<void> loadReservations(String userId) async {
+    print('🔄 Provider: loadReservations çağrıldı - userId: $userId');
     _isLoading = true;
     notifyListeners();
 
     try {
       _reservations = MockDataService.instance.getMockReservations(userId);
+      print('✅ Provider: ${_reservations.length} rezervasyon yüklendi');
+      for (var res in _reservations) {
+        print('   📋 ${res.id}: ${res.mealName} - ${res.status} - User: ${res.userId}');
+      }
       _isLoading = false;
       notifyListeners();
     } catch (e) {
+      print('❌ Provider HATA: $e');
       _errorMessage = 'Rezervasyonlar yüklenemedi: $e';
       _isLoading = false;
       notifyListeners();

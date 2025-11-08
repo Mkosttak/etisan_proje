@@ -338,7 +338,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
   Widget _buildDateSelector(MealProvider mealProvider,
       {EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16)}) {
     return SizedBox(
-      height: 80,
+      height: 70,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: padding,
@@ -350,7 +350,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
               _selectedDate.day == date.day;
 
           return Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: 10),
             child: InkWell(
               onTap: () {
                 setState(() {
@@ -358,12 +358,12 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
                 });
                 mealProvider.setDateFilter(date);
               },
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               child: Container(
-                width: 70,
+                width: 65,
                 decoration: BoxDecoration(
                   color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isSelected ? Colors.white : Colors.transparent,
                     width: 2,
@@ -376,16 +376,16 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
                       _getDayName(date.weekday),
                       style: TextStyle(
                         color: isSelected ? AppColors.primaryOrange : Colors.white,
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       '${date.day}',
                       style: TextStyle(
                         color: isSelected ? AppColors.primaryOrange : Colors.white,
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -393,7 +393,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
                       _getMonthName(date.month),
                       style: TextStyle(
                         color: isSelected ? AppColors.primaryOrange : Colors.white70,
-                        fontSize: 11,
+                        fontSize: 10,
                       ),
                     ),
                   ],
