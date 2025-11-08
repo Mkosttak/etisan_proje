@@ -4,7 +4,6 @@ import '../../core/constants/app_colors.dart';
 import '../../core/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
-import '../../providers/meal_provider.dart';
 import '../../providers/reservation_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../data/models/meal_model.dart';
@@ -80,8 +79,9 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
         backgroundColor: AppColors.secondaryGreen,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(250),
-          child: Column(
+          preferredSize: const Size.fromHeight(280),
+          child: SingleChildScrollView(
+            child: Column(
             children: [
               const SizedBox(height: 16),
               // Date Selector
@@ -148,6 +148,7 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 12),
             ],
+            ),
           ),
         ),
       ),
@@ -471,124 +472,6 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCompactInfo(IconData icon, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: AppColors.grey600),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.grey900,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _acceptSwap(BuildContext context, reservation) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.currentUser!;
-
-    if (user.balance < reservation.price) {
-      Helpers.showSnackBar(
-        context,
-        'Yetersiz bakiye! Eksik: ${Helpers.formatCurrency(reservation.price - user.balance)}',
-        isError: true,
-      );
-      return;
-    }
-
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.swap_horiz, color: AppColors.secondaryGreen),
-            SizedBox(width: 12),
-            Text('Takas Onayı'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${reservation.mealName} için takas yapmak istediğinize emin misiniz?'),
-            const SizedBox(height: 12),
-            Text(
-              'Ücret: ${Helpers.formatCurrency(reservation.price)}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('İptal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondaryGreen,
-            ),
-            child: const Text('Onayla'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true || !context.mounted) return;
-
-    final reservationProvider = Provider.of<ReservationProvider>(context, listen: false);
-    final transactionProvider = Provider.of<TransactionProvider>(context, listen: false);
-
-    final success = await reservationProvider.acceptSwap(
-      reservation.id,
-      user.id,
-    );
-
-    if (!context.mounted) return;
-
-    if (success) {
-      final newBalance = user.balance - reservation.price;
-      authProvider.updateBalance(newBalance);
-
-      final transaction = TransactionModel(
-        id: 'trans-${DateTime.now().millisecondsSinceEpoch}',
-        userId: user.id,
-        type: 'reservation',
-        amount: -reservation.price,
-        balanceAfter: newBalance,
-        description: 'Takas - ${reservation.mealName}',
-        createdAt: DateTime.now(),
-      );
-      transactionProvider.addTransaction(transaction);
-
-      Helpers.showSnackBar(context, 'Takas başarıyla tamamlandı!');
-    } else {
-      Helpers.showSnackBar(
-        context,
-        reservationProvider.errorMessage ?? 'Takas başarısız',
-        isError: true,
-      );
-    }
-  }
-
   // Date Selector - Küçük
   Widget _buildDateSelector() {
     return SizedBox(
@@ -768,12 +651,12 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? Colors.white : Colors.transparent,
             width: 1.5,
@@ -903,7 +786,6 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
       );
       
       cartProvider.addToCart(meal);
-      print('✅ Sepete eklendi: ${meal.name}, Toplam: ${cartProvider.itemCount}');
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1057,7 +939,6 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
     if (confirm != true || !mounted) return;
 
     // Takas işlemi simülasyonu
-    final reservationProvider = Provider.of<ReservationProvider>(context, listen: false);
     final transactionProvider = Provider.of<TransactionProvider>(context, listen: false);
     
     // Bakiye güncelleme

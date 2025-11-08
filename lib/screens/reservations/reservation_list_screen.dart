@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/layout/app_page_container.dart';
 import '../../core/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reservation_provider.dart';
+import 'create_reservation_screen.dart';
 import 'reservation_detail_screen.dart';
 
 class ReservationListScreen extends StatefulWidget {
@@ -66,28 +68,43 @@ class _ReservationListScreenState extends State<ReservationListScreen>
 
     return Scaffold(
       backgroundColor: AppColors.surfaceLight,
-      appBar: AppBar(
-        title: const Text('Rezervasyonlarım'),
-        backgroundColor: AppColors.primaryOrange,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Aktif'),
-            Tab(text: 'Geçmiş'),
-          ],
-        ),
-      ),
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: TabBarView(
-            controller: _tabController,
+        child: AppPageContainer(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
             children: [
-              _buildReservationList(upcomingReservations, true),
-              _buildReservationList(pastReservations, false),
+              _buildHeroSection(
+                upcomingReservations.length,
+                pastReservations.length,
+              ),
+              const SizedBox(height: 16),
+              _buildTabSwitcher(),
+              const SizedBox(height: 12),
+              Expanded(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildReservationList(upcomingReservations, true),
+                      _buildReservationList(pastReservations, false),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CreateReservationScreen()),
+          );
+        },
+        backgroundColor: AppColors.primaryOrange,
+        icon: const Icon(Icons.add),
+        label: const Text('Yeni Rezervasyon'),
       ),
     );
   }
@@ -122,8 +139,8 @@ class _ReservationListScreenState extends State<ReservationListScreen>
               ),
             ),
             const SizedBox(height: 24),
-            Text(
-              isUpcoming ? 'Hen�z aktif rezervasyon yok' : 'Ge�mi� kayd�n yok',
+              Text(
+              isUpcoming ? 'Henüz aktif rezervasyon yok' : 'Geçmiş kaydın yok',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -363,7 +380,7 @@ class _ReservationListScreenState extends State<ReservationListScreen>
                         Icon(Icons.swap_horiz, size: 16, color: AppColors.warning),
                         SizedBox(width: 8),
                         Text(
-                          'Takasa A��k',
+                          'Takasa Açık',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -407,80 +424,37 @@ class _ReservationListScreenState extends State<ReservationListScreen>
   }
 
   Widget _buildHeroSection(int activeCount, int pastCount) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.primaryOrange, AppColors.secondaryOrange],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primaryOrange, AppColors.secondaryOrange],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryOrange.withOpacity(0.3),
+            blurRadius: 30,
+            offset: const Offset(0, 12),
           ),
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryOrange.withOpacity(0.3),
-              blurRadius: 30,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Rezervasyonlar�m',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Plan�n� kolayca y�net',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(Icons.calendar_month, color: Colors.white),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                _buildHeroStat(
-                  label: 'Aktif',
-                  value: activeCount.toString(),
-                  icon: Icons.event_available,
-                ),
-                const SizedBox(width: 12),
-                _buildHeroStat(
-                  label: 'Ge�mi�',
-                  value: pastCount.toString(),
-                  icon: Icons.history,
-                ),
-              ],
-            ),
-          ],
-        ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _buildHeroStat(
+            label: 'Aktif',
+            value: activeCount.toString(),
+            icon: Icons.event_available,
+          ),
+          const SizedBox(width: 12),
+          _buildHeroStat(
+            label: 'Geçmiş',
+            value: pastCount.toString(),
+            icon: Icons.history,
+          ),
+        ],
       ),
     );
   }
@@ -534,58 +508,55 @@ class _ReservationListScreenState extends State<ReservationListScreen>
     );
   }
 
-  Widget _buildTabSwitcher(int upcomingCount, int pastCount) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: TabBar(
-          controller: _tabController,
-          indicator: BoxDecoration(
-            color: AppColors.primaryOrange,
-            borderRadius: BorderRadius.circular(16),
+  Widget _buildTabSwitcher() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          labelColor: Colors.white,
-          unselectedLabelColor: AppColors.grey600,
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-          unselectedLabelStyle: const TextStyle(fontSize: 14),
-          indicatorPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-          tabs: [
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.upcoming, size: 18),
-                  const SizedBox(width: 6),
-                  Text('Aktif ($upcomingCount)'),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.history, size: 18),
-                  const SizedBox(width: 6),
-                  Text('Ge�mi� ($pastCount)'),
-                ],
-              ),
-            ),
-          ],
+        ],
+      ),
+      child: TabBar(
+        controller: _tabController,
+        indicator: BoxDecoration(
+          color: AppColors.primaryOrange,
+          borderRadius: BorderRadius.circular(16),
         ),
+        labelColor: Colors.white,
+        unselectedLabelColor: AppColors.grey600,
+        labelStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+        unselectedLabelStyle: const TextStyle(fontSize: 14),
+        indicatorPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        tabs: const [
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.upcoming, size: 18),
+                SizedBox(width: 6),
+                Text('Aktif'),
+              ],
+            ),
+          ),
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.history, size: 18),
+                SizedBox(width: 6),
+                Text('Geçmiş'),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

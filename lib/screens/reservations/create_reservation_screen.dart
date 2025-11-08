@@ -73,8 +73,9 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
         backgroundColor: AppColors.primaryOrange,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(250),
-          child: Column(
+          preferredSize: const Size.fromHeight(280),
+          child: SingleChildScrollView(
+            child: Column(
             children: [
               const SizedBox(height: 16),
               // Date Selector
@@ -141,6 +142,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
               ),
               const SizedBox(height: 12),
             ],
+            ),
           ),
         ),
       ),
@@ -211,12 +213,12 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
         }
         mealProvider.setCafeteriaFilter(cafeteriaId);
       },
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? Colors.white : Colors.transparent,
             width: 1.5,
@@ -248,7 +250,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
   // Compact version for AppBar (turuncu tema)
   Widget _buildCompactMealTypeFilters(MealProvider mealProvider) {
     return Container(
-      height: 42,
+      height: 38,
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: ListView(
         scrollDirection: Axis.horizontal,
@@ -297,15 +299,15 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
       onTap: () {
         mealProvider.setMealTypeFilter(isSelected ? null : type);
       },
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? Colors.white : Colors.transparent,
-            width: 2,
+            width: 1.5,
           ),
         ),
         child: Row(
@@ -313,14 +315,14 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
           children: [
             Icon(
               icon,
-              size: 16,
+              size: 15,
               color: isSelected ? AppColors.primaryOrange : Colors.white,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected ? AppColors.primaryOrange : Colors.white,
               ),
