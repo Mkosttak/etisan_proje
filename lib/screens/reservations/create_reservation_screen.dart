@@ -57,8 +57,13 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
         mealProvider.setMealTypeFilter(authProvider.currentUser!.mealPreference);
       }
     }
+    
+    // Yemekhane otomatik seçimi - önce kullanıcının tercihi, yoksa varsayılan
     if (authProvider.currentUser?.preferredCafeteriaId != null) {
       mealProvider.setCafeteriaFilter(authProvider.currentUser!.preferredCafeteriaId);
+    } else {
+      // Varsayılan olarak ilk yemekhaneyi seç (Merkez Yemekhane)
+      mealProvider.setCafeteriaFilter('cafeteria-1');
     }
 
     mealProvider.setDateFilter(_selectedDate);
@@ -71,12 +76,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
     final cartProvider = Provider.of<CartProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
 
-    // Cafeteria kontrolü
-    if (mealProvider.selectedCafeteriaId == null) {
-      return _buildSelectCafeteriaScreen();
-    }
-
-     return Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         toolbarHeight: 0,
@@ -348,112 +348,6 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
   }
 
 
-  Widget _buildSelectCafeteriaScreen() {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        toolbarHeight: 56,
-        automaticallyImplyLeading: false,
-        title: const Text('Yemekhane Seçin'),
-        backgroundColor: AppColors.primaryOrange,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 120),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Icon(
-              Icons.restaurant_menu,
-              size: 80,
-              color: AppColors.primaryOrange,
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Rezervasyon yapmak için önce bir yemekhane seçin',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.grey900,
-              ),
-            ),
-            const SizedBox(height: 40),
-            _buildCafeteriaCard(
-              'cafeteria-1',
-              'Merkez Yemekhane',
-              Icons.restaurant_menu,
-              Colors.blue,
-            ),
-            const SizedBox(height: 16),
-            _buildCafeteriaCard(
-              'cafeteria-2',
-              'Mühendislik Fakültesi',
-              Icons.engineering,
-              Colors.purple,
-            ),
-            const SizedBox(height: 16),
-            _buildCafeteriaCard(
-              'cafeteria-3',
-              'Tıp Fakültesi',
-              Icons.local_hospital,
-              Colors.red,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCafeteriaCard(String id, String name, IconData icon, Color color) {
-    return InkWell(
-      onTap: () {
-        final mealProvider = Provider.of<MealProvider>(context, listen: false);
-        mealProvider.setCafeteriaFilter(id);
-        setState(() {});
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3), width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, size: 32, color: color),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.grey900,
-                ),
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios, color: color, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildDateSelector(MealProvider mealProvider) {
     return SizedBox(

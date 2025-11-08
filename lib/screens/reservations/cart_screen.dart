@@ -175,104 +175,101 @@ class CartScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              meal.name,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.grey900,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 40),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          meal.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.grey900,
                           ),
-                          if (meal.isFromSwap) ...[
-                            const SizedBox(width: 8),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.secondaryGreen.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: AppColors.secondaryGreen.withOpacity(0.5),
-                                  width: 1,
+                                color: periodColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                meal.mealPeriod == 'breakfast'
+                                    ? 'Kahvaltı'
+                                    : meal.mealPeriod == 'lunch'
+                                        ? 'Öğle'
+                                        : 'Akşam',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: periodColor,
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.swap_horiz_rounded,
-                                    size: 14,
-                                    color: AppColors.secondaryGreen,
+                            ),
+                            if (meal.isFromSwap) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.secondaryGreen.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: AppColors.secondaryGreen.withOpacity(0.5),
+                                    width: 1,
                                   ),
-                                  const SizedBox(width: 4),
-                                  const Text(
-                                    'Takas',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.swap_horiz_rounded,
+                                      size: 12,
                                       color: AppColors.secondaryGreen,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 4),
+                                    const Text(
+                                      'Takas',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.secondaryGreen,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                Helpers.formatDate(meal.mealDate, 'dd MMM yyyy'),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.grey600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: periodColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              meal.mealPeriod == 'breakfast'
-                                  ? 'Kahvaltı'
-                                  : meal.mealPeriod == 'lunch'
-                                      ? 'Öğle'
-                                      : 'Akşam',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: periodColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              Helpers.formatDate(meal.mealDate, 'dd MMM yyyy'),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.grey600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        Helpers.formatCurrency(meal.reservationPrice),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryOrange,
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          Helpers.formatCurrency(meal.reservationPrice),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryOrange,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -286,13 +283,13 @@ class CartScreen extends StatelessWidget {
                 cartProvider.removeFromCart(meal.id);
                 Helpers.showSnackBar(context, 'Sepetten çıkarıldı');
               },
-              icon: const Icon(Icons.close),
+              icon: const Icon(Icons.delete_outline),
               style: IconButton.styleFrom(
-                backgroundColor: AppColors.grey100,
+                backgroundColor: AppColors.error.withOpacity(0.1),
                 padding: const EdgeInsets.all(8),
               ),
-              iconSize: 20,
-              color: AppColors.grey600,
+              iconSize: 22,
+              color: AppColors.error,
             ),
           ),
         ],
