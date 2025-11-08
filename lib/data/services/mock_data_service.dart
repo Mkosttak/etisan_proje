@@ -590,14 +590,12 @@ class MockDataService {
   // Update User Preferences
   void updateUserPreferences({
     required String userId,
-    String? mealPreference,
     String? preferredCafeteriaId,
   }) {
     // Mock data'daki kullanıcıyı bul ve güncelle
     _mockUsers.forEach((email, user) {
       if (user.id == userId) {
         _mockUsers[email] = user.copyWith(
-          mealPreference: mealPreference,
           preferredCafeteriaId: preferredCafeteriaId,
         );
       }

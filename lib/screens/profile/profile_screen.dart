@@ -7,7 +7,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../auth/login_screen.dart';
 import '../balance/transaction_history_screen.dart';
-import 'preferences_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -167,18 +166,6 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _buildSettingTile(
-                    Icons.restaurant_menu,
-                    'Yemek Tercihleri',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const PreferencesScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const Divider(height: 1),
                   _buildSettingTile(
                     Icons.receipt_long,
                     AppStrings.tr['transactionHistory']!,

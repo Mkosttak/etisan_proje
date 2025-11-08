@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/helpers.dart';
+import '../../core/layout/app_page_container.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reservation_provider.dart';
 import '../../providers/meal_provider.dart';
@@ -78,12 +79,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         .toList();
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _loadData,
-        color: AppColors.primaryOrange,
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
+      body: AppPageContainer(
+        useSafeArea: false,
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          color: AppColors.primaryOrange,
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
             // Modern App Bar
             SliverAppBar(
               expandedHeight: 160,
@@ -486,4 +489,3 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 }
-

@@ -50,7 +50,7 @@ class _MainNavigationState extends State<MainNavigation> {
           if (itemCount == 0) return const SizedBox.shrink();
           
           return Padding(
-            padding: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.only(bottom: 10),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),

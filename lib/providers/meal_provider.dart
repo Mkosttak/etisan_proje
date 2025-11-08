@@ -12,7 +12,6 @@ class MealProvider with ChangeNotifier {
   DateTime? _selectedDate;
   String? _selectedMealType;
   String? _selectedMealPeriod;
-  String? _userPreference; // Kullanıcı tercihi (normal, vegetarian, vegan, gluten_free)
   String? _selectedCafeteriaId; // Seçilen yemekhane
 
   List<MealModel> get meals => _filteredMeals;
@@ -21,7 +20,6 @@ class MealProvider with ChangeNotifier {
   DateTime? get selectedDate => _selectedDate;
   String? get selectedMealType => _selectedMealType;
   String? get selectedMealPeriod => _selectedMealPeriod;
-  String? get userPreference => _userPreference;
   String? get selectedCafeteriaId => _selectedCafeteriaId;
 
   // Load Meals
@@ -55,17 +53,11 @@ class MealProvider with ChangeNotifier {
       bool matchesPeriod = _selectedMealPeriod == null ||
           meal.mealPeriod == _selectedMealPeriod;
 
-      // Kullanıcı tercihine göre filtrele (eğer tercih varsa)
-      bool matchesPreference = _userPreference == null || 
-          _userPreference == 'normal' || 
-          meal.mealType == _userPreference ||
-          (_userPreference == 'gluten_free' && !meal.allergens.contains('gluten'));
-
       // Yemekhane filtrelemesi
       bool matchesCafeteria = _selectedCafeteriaId == null ||
           meal.cafeteriaId == _selectedCafeteriaId;
 
-      return matchesDate && matchesType && matchesPeriod && matchesPreference && matchesCafeteria;
+      return matchesDate && matchesType && matchesPeriod && matchesCafeteria;
     }).toList();
 
     // Sort by date
@@ -89,13 +81,6 @@ class MealProvider with ChangeNotifier {
   // Set Meal Period Filter
   void setMealPeriodFilter(String? period) {
     _selectedMealPeriod = period;
-    _applyFilters();
-    notifyListeners();
-  }
-
-  // Set User Preference (from user profile)
-  void setUserPreference(String? preference) {
-    _userPreference = preference;
     _applyFilters();
     notifyListeners();
   }

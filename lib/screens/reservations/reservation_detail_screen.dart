@@ -194,31 +194,35 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
 
             // Action Buttons
             if (isActive) ...[
-              // Takas Butonu
-              if (canSwap)
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _openForSwap(context),
-                    icon: const Icon(Icons.swap_horiz, size: 20),
-                    label: Text(
-                      widget.reservation.isTransferOpen
-                          ? 'Takası Kapat'
-                          : 'Takasa Aç',
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.reservation.isTransferOpen
-                          ? AppColors.warning
-                          : AppColors.secondaryGreen,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+              // Satışa Çıkar Butonu
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _openForSwap(context),
+                  icon: Icon(
+                    widget.reservation.isTransferOpen
+                        ? Icons.shopping_bag
+                        : Icons.sell_outlined,
+                    size: 20,
+                  ),
+                  label: Text(
+                    widget.reservation.isTransferOpen
+                        ? 'Satıştan Kaldır'
+                        : 'Rezervasyonu Satışa Çıkar',
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.reservation.isTransferOpen
+                        ? AppColors.warning
+                        : AppColors.secondaryGreen,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
+              ),
               
-              if (canSwap) const SizedBox(height: 12),
+              const SizedBox(height: 12),
               
               // İptal Butonu
               if (canCancel)
@@ -339,17 +343,17 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
         title: Row(
           children: [
             Icon(
-              widget.reservation.isTransferOpen ? Icons.close : Icons.swap_horiz,
+              widget.reservation.isTransferOpen ? Icons.shopping_bag : Icons.sell_outlined,
               color: AppColors.secondaryGreen,
             ),
             const SizedBox(width: 12),
-            Text(widget.reservation.isTransferOpen ? 'Takası Kapat' : 'Takasa Aç'),
+            Text(widget.reservation.isTransferOpen ? 'Satıştan Kaldır' : 'Satışa Çıkar'),
           ],
         ),
         content: Text(
           widget.reservation.isTransferOpen
-              ? 'Bu rezervasyonu takasa kapatmak istediğinize emin misiniz?'
-              : 'Bu rezervasyonu takasa açmak istediğinize emin misiniz?',
+              ? 'Bu rezervasyonu satıştan kaldırmak istediğinize emin misiniz?'
+              : 'Bu rezervasyonu satışa çıkarmak istediğinize emin misiniz? Diğer kullanıcılar bu rezervasyonu satın alabilecek.',
         ),
         actions: [
           TextButton(
@@ -378,8 +382,8 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
       Helpers.showSnackBar(
         context,
         widget.reservation.isTransferOpen
-            ? 'Rezervasyon takasa kapatıldı'
-            : 'Rezervasyon takasa açıldı',
+            ? 'Rezervasyon satıştan kaldırıldı'
+            : 'Rezervasyon satışa çıkarıldı',
       );
     } else {
       Helpers.showSnackBar(

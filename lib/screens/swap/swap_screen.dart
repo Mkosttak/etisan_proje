@@ -48,11 +48,6 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
           _selectedCafeteria = _getCafeteriaName(user.preferredCafeteriaId!);
         });
       }
-      if (user.mealPreference != null && user.mealPreference != 'normal') {
-        setState(() {
-          _selectedMealType = _getMealTypeName(user.mealPreference!);
-        });
-      }
       
       await reservationProvider.loadReservations(user.id);
     }

@@ -9,7 +9,6 @@ import '../../providers/transaction_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../data/models/meal_model.dart';
 import '../../data/models/transaction_model.dart';
-import 'cart_screen.dart';
 
 class CreateReservationScreen extends StatefulWidget {
   const CreateReservationScreen({super.key});
@@ -49,14 +48,6 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
   Future<void> _loadData() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final mealProvider = Provider.of<MealProvider>(context, listen: false);
-
-    // Kullanıcı tercihlerini uygula
-    if (authProvider.currentUser?.mealPreference != null) {
-      mealProvider.setUserPreference(authProvider.currentUser!.mealPreference);
-      if (authProvider.currentUser!.mealPreference != 'normal') {
-        mealProvider.setMealTypeFilter(authProvider.currentUser!.mealPreference);
-      }
-    }
     
     // Yemekhane otomatik seçimi - önce kullanıcının tercihi, yoksa varsayılan
     if (authProvider.currentUser?.preferredCafeteriaId != null) {
@@ -73,8 +64,6 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
   @override
   Widget build(BuildContext context) {
     final mealProvider = Provider.of<MealProvider>(context);
-    final cartProvider = Provider.of<CartProvider>(context);
-    final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -157,11 +146,6 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
       ),
       body: Column(
         children: [
-          // User Preference Info
-          if (authProvider.currentUser?.mealPreference != null &&
-              authProvider.currentUser!.mealPreference != 'normal')
-            _buildPreferenceInfo(authProvider.currentUser!.mealPreference),
-
           // Meals List
           Expanded(
             child: TabBarView(
@@ -419,45 +403,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
     );
   }
 
-  Widget _buildPreferenceInfo(String? preference) {
-    if (preference == null || preference == 'normal') return const SizedBox.shrink();
-
-    String prefName = preference == 'vegetarian'
-        ? 'Vejetaryen'
-        : preference == 'vegan'
-            ? 'Vegan'
-            : 'Glutensiz';
-
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.secondaryGreen.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.secondaryGreen.withOpacity(0.3),
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.info_outline, color: AppColors.secondaryGreen, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Tercihlerinize uygun yemekler gösteriliyor: $prefName',
-              style: const TextStyle(
-                color: AppColors.secondaryGreen,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-   Widget _buildMealsList(MealProvider mealProvider, String period) {
+  Widget _buildMealsList(MealProvider mealProvider, String period) {
     final meals = mealProvider.meals
         .where((meal) => meal.mealPeriod == period)
         .toList();

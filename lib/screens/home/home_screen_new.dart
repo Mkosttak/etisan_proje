@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_strings.dart';
 import '../../core/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reservation_provider.dart';

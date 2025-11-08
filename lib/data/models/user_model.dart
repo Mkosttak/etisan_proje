@@ -9,7 +9,6 @@ class UserModel {
   final double balance;
   final String? school;
   final String? profileImageUrl;
-  final String? mealPreference; // 'normal', 'vegetarian', 'vegan', 'gluten_free'
   final String? preferredCafeteriaId; // Tercih edilen yemekhane
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -25,7 +24,6 @@ class UserModel {
     required this.balance,
     this.school,
     this.profileImageUrl,
-    this.mealPreference,
     this.preferredCafeteriaId,
     required this.createdAt,
     this.updatedAt,
@@ -43,7 +41,6 @@ class UserModel {
       balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
       school: json['school'] as String?,
       profileImageUrl: json['profile_image_url'] as String?,
-      mealPreference: json['meal_preference'] as String?,
       preferredCafeteriaId: json['preferred_cafeteria_id'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: json['updated_at'] != null 
@@ -64,7 +61,6 @@ class UserModel {
       'balance': balance,
       'school': school,
       'profile_image_url': profileImageUrl,
-      'meal_preference': mealPreference,
       'preferred_cafeteria_id': preferredCafeteriaId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
@@ -82,7 +78,6 @@ class UserModel {
     double? balance,
     String? school,
     String? profileImageUrl,
-    String? mealPreference,
     String? preferredCafeteriaId,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -98,7 +93,6 @@ class UserModel {
       balance: balance ?? this.balance,
       school: school ?? this.school,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
-      mealPreference: mealPreference ?? this.mealPreference,
       preferredCafeteriaId: preferredCafeteriaId ?? this.preferredCafeteriaId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
