@@ -123,11 +123,13 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back, color: AppColors.white),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.2),
+                    Builder(
+                      builder: (context) => IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back, color: AppColors.white),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -159,23 +161,25 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                           child: Column(
                             children: [
                               // Header
-                              Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: AppColors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 20,
-                                      spreadRadius: 5,
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.person_add,
-                                  size: 50,
-                                  color: AppColors.primaryOrange,
+                              Builder(
+                                builder: (context) => Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.getCardColor(context),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.getShadow(context),
+                                        blurRadius: 20,
+                                        spreadRadius: 5,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.person_add,
+                                    size: 50,
+                                    color: AppColors.primaryOrange,
+                                  ),
                                 ),
                               ),
                               
@@ -203,31 +207,34 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                               const SizedBox(height: 40),
                               
                               // Form Container
-                              Container(
-                                padding: const EdgeInsets.all(28),
-                                decoration: BoxDecoration(
-                                  color: AppColors.white,
-                                  borderRadius: BorderRadius.circular(24),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 30,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
-                                ),
+                              Builder(
+                                builder: (context) => Container(
+                                  padding: const EdgeInsets.all(28),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.getCardColor(context),
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.getShadow(context),
+                                        blurRadius: 30,
+                                        offset: const Offset(0, 10),
+                                      ),
+                                    ],
+                                  ),
                                 child: Form(
                                   key: _formKey,
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
                                       // Role Selection
-                                      const Text(
-                                        'Rol Seçimi',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.grey700,
+                                      Builder(
+                                        builder: (context) => Text(
+                                          'Rol Seçimi',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.getTextPrimary(context),
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(height: 12),
@@ -376,6 +383,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                                     ],
                                   ),
                                 ),
+                                ),
                               ),
                               
                               const SizedBox(height: 24),
@@ -397,40 +405,50 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   Widget _buildRoleChip(String label, IconData icon, String role) {
     final isSelected = _selectedRole == role;
     
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedRole = role;
-        });
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryOrange : AppColors.grey100,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryOrange : AppColors.grey300,
-            width: 2,
+    return Builder(
+      builder: (context) => InkWell(
+        onTap: () {
+          setState(() {
+            _selectedRole = role;
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: isSelected 
+                ? AppColors.primaryOrange 
+                : AppColors.getChipBackground(context),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected 
+                  ? AppColors.primaryOrange 
+                  : AppColors.getBorder(context),
+              width: 2,
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.white : AppColors.grey600,
-              size: 28,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? AppColors.white : AppColors.grey700,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: isSelected 
+                    ? AppColors.white 
+                    : AppColors.getIconColor(context),
+                size: 28,
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected 
+                      ? AppColors.white 
+                      : AppColors.getTextPrimary(context),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
