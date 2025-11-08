@@ -66,19 +66,6 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
     }
   }
 
-  String _getMealTypeName(String type) {
-    switch (type) {
-      case 'vegetarian':
-        return 'Vejetaryen';
-      case 'vegan':
-        return 'Vegan';
-      case 'gluten_free':
-        return 'Glutensiz';
-      default:
-        return 'Normal';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -871,7 +858,6 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
   // Sepete Ekle
   void _addToCart(BuildContext context, reservation) {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    final mealProvider = Provider.of<MealProvider>(context, listen: false);
     
     final mealId = reservation.mealId;
     final isInCart = cartProvider.isMealInCart(mealId);

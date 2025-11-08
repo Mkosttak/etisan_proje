@@ -24,7 +24,6 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
     final color = Helpers.getMealPeriodColor(widget.reservation.mealPeriod);
     final icon = Helpers.getMealPeriodIcon(widget.reservation.mealPeriod);
     final canCancel = widget.reservation.canBeCancelled;
-    final canSwap = widget.reservation.canBeTransferred;
     final isActive = widget.reservation.status == 'reserved';
 
     return Scaffold(
