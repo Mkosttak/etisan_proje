@@ -70,14 +70,9 @@ class _ReservationListScreenState extends State<ReservationListScreen>
       backgroundColor: AppColors.surfaceLight,
       body: SafeArea(
         child: AppPageContainer(
-          padding: const EdgeInsets.only(bottom: 24),
+          padding: const EdgeInsets.only(bottom: 24, top: 16),
           child: Column(
             children: [
-              _buildHeroSection(
-                upcomingReservations.length,
-                pastReservations.length,
-              ),
-              const SizedBox(height: 16),
               _buildTabSwitcher(),
               const SizedBox(height: 12),
               Expanded(
@@ -95,16 +90,6 @@ class _ReservationListScreenState extends State<ReservationListScreen>
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const CreateReservationScreen()),
-          );
-        },
-        backgroundColor: AppColors.primaryOrange,
-        icon: const Icon(Icons.add),
-        label: const Text('Yeni Rezervasyon'),
       ),
     );
   }
@@ -192,12 +177,12 @@ class _ReservationListScreenState extends State<ReservationListScreen>
       case 'consumed':
         statusColor = AppColors.secondaryGreen;
         statusIcon = Icons.restaurant;
-        statusText = 'T�ketildi';
+        statusText = 'Tüketildi';
         break;
       case 'cancelled':
         statusColor = AppColors.secondaryRed;
         statusIcon = Icons.cancel;
-        statusText = '�ptal';
+        statusText = 'İptal';
         break;
       case 'transferred':
         statusColor = AppColors.secondaryPurple;
@@ -287,33 +272,38 @@ class _ReservationListScreenState extends State<ReservationListScreen>
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.calendar_month,
-                                  size: 14, color: AppColors.grey500),
-                              const SizedBox(width: 4),
-                              Text(
-                                Helpers.formatDate(
-                                  reservation.mealDate,
-                                  'dd MMM yyyy',
+                          Flexible(
+                            child: Row(
+                              children: [
+                                Icon(Icons.calendar_month,
+                                    size: 14, color: AppColors.grey500),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    Helpers.formatDate(
+                                      reservation.mealDate,
+                                      'dd MMM yyyy',
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.grey600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.grey600,
+                                const SizedBox(width: 12),
+                                Icon(Icons.access_time,
+                                    size: 14, color: AppColors.grey500),
+                                const SizedBox(width: 4),
+                                Text(
+                                  Helpers.formatDate(reservation.mealDate, 'HH:mm'),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.grey600,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Icon(Icons.access_time,
-                                  size: 14, color: AppColors.grey500),
-                              const SizedBox(width: 4),
-                              Text(
-                                Helpers.formatDate(reservation.mealDate, 'HH:mm'),
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.grey600,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -420,91 +410,6 @@ class _ReservationListScreenState extends State<ReservationListScreen>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHeroSection(int activeCount, int pastCount) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primaryOrange, AppColors.secondaryOrange],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryOrange.withOpacity(0.3),
-            blurRadius: 30,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _buildHeroStat(
-            label: 'Aktif',
-            value: activeCount.toString(),
-            icon: Icons.event_available,
-          ),
-          const SizedBox(width: 12),
-          _buildHeroStat(
-            label: 'Geçmiş',
-            value: pastCount.toString(),
-            icon: Icons.history,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeroStat({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.primaryOrange.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: AppColors.primaryOrange, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.grey900,
-                  ),
-                ),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.grey600,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 

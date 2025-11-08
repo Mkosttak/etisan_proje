@@ -335,12 +335,13 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
 
 
 
-  Widget _buildDateSelector(MealProvider mealProvider) {
+  Widget _buildDateSelector(MealProvider mealProvider,
+      {EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16)}) {
     return SizedBox(
       height: 80,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: padding,
         itemCount: 15,
         itemBuilder: (context, index) {
           final date = DateTime.now().add(Duration(days: index));
@@ -473,9 +474,6 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
   }
 
   Widget _buildModernMealCard(MealModel meal) {
-    final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    final isInCart = cartProvider.isMealInCart(meal.id);
-
     Color periodColor;
     switch (meal.mealPeriod) {
       case 'breakfast':
@@ -491,7 +489,11 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
         periodColor = AppColors.grey500;
     }
 
-    return Container(
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, child) {
+        final isInCart = cartProvider.isMealInCart(meal.id);
+        
+        return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -671,6 +673,8 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
           ),
         ],
       ),
+        );
+      },
     );
   }
 
@@ -940,4 +944,3 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
     return months[month - 1];
   }
 }
-
