@@ -48,6 +48,12 @@ class AppColors {
   static const Color backgroundDark = Color(0xFF0F172A);
   static const Color surfaceLight = Color(0xFFFFFFFF);
   static const Color surfaceDark = Color(0xFF1E293B);
+
+  // Web Specific Surfaces
+  static const Color webBackground = Color(0xFFF1F5F9);
+  static const Color webSidebar = Color(0xFFFFFFFF);
+  static const Color webSidebarHighlight = Color(0xFFE8F5E9);
+  static const Color webCard = Color(0xFFFFFFFF);
   
   // Reservation Status Colors
   static const Color reserved = Color(0xFF3B82F6);
