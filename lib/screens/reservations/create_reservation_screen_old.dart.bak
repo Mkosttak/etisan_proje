@@ -1,0 +1,821 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
+import '../../core/utils/helpers.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/meal_provider.dart';
+import '../../providers/reservation_provider.dart';
+import '../../providers/transaction_provider.dart';
+import '../../providers/cart_provider.dart';
+import '../../data/models/meal_model.dart';
+import '../../data/models/transaction_model.dart';
+import 'cart_screen.dart';
+
+class CreateReservationScreen extends StatefulWidget {
+  const CreateReservationScreen({super.key});
+
+  @override
+  State<CreateReservationScreen> createState() =>
+      _CreateReservationScreenState();
+}
+
+class _CreateReservationScreenState extends State<CreateReservationScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final mealProvider = Provider.of<MealProvider>(context, listen: false);
+      
+      // Kullanıcının yemek tercihini ve yemekhane seçimini uygula
+      if (authProvider.currentUser?.mealPreference != null) {
+        mealProvider.setUserPreference(authProvider.currentUser!.mealPreference);
+        // Yemek türü filtresini de kullanıcı tercihine göre ayarla
+        final preference = authProvider.currentUser!.mealPreference;
+        if (preference != null && preference != 'normal') {
+          mealProvider.setMealTypeFilter(preference);
+        }
+      }
+      if (authProvider.currentUser?.preferredCafeteriaId != null) {
+        mealProvider.setCafeteriaFilter(authProvider.currentUser!.preferredCafeteriaId);
+      }
+      
+      mealProvider.loadMeals();
+    });
+  }
+
+  String _getMealPreferenceName(String? preference) {
+    switch (preference) {
+      case 'vegetarian':
+        return 'Vejetaryen';
+      case 'vegan':
+        return 'Vegan';
+      case 'gluten_free':
+        return 'Glutensiz';
+      default:
+        return 'Normal';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mealProvider = Provider.of<MealProvider>(context);
+    final cartProvider = Provider.of<CartProvider>(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppStrings.tr['createReservation']!.replaceAll('\n', ' ')),
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.shopping_cart),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CartScreen(),
+                    ),
+                  );
+                },
+              ),
+              if (cartProvider.itemCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.error,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '${cartProvider.itemCount}',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Filters
+          _buildFilters(mealProvider),
+
+          // Meals List
+          Expanded(
+            child: mealProvider.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : mealProvider.meals.isEmpty
+                    ? const Center(
+                        child: Text('Yemek bulunamadı'),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(20),
+                        itemCount: mealProvider.meals.length,
+                        itemBuilder: (context, index) {
+                          return _buildMealCard(mealProvider.meals[index]);
+                        },
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilters(MealProvider mealProvider) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.grey200.withOpacity(0.5),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                AppStrings.tr['filters']!,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                  color: AppColors.grey600,
+                ),
+              ),
+              // Kullanıcının yemek tercihini göster
+              if (mealProvider.userPreference != null &&
+                  mealProvider.userPreference != 'normal')
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryOrange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.primaryOrange,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 14,
+                        color: AppColors.primaryOrange,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tercih: ${_getMealPreferenceName(mealProvider.userPreference)}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryOrange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Date Filter Button
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: mealProvider.selectedDate ?? DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(const Duration(days: 15)),
+                    );
+                    if (picked != null) {
+                      mealProvider.setDateFilter(picked);
+                    }
+                  },
+                  icon: const Icon(Icons.calendar_today, size: 18),
+                  label: Text(
+                    mealProvider.selectedDate != null
+                        ? Helpers.formatDate(
+                            mealProvider.selectedDate!, 'dd MMMM yyyy')
+                        : AppStrings.tr['selectDate']!,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: mealProvider.selectedDate != null
+                        ? AppColors.primaryOrange
+                        : AppColors.grey300,
+                  ),
+                ),
+              ),
+              if (mealProvider.selectedDate != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () => mealProvider.setDateFilter(null),
+                  icon: const Icon(Icons.close),
+                  color: AppColors.error,
+                ),
+              ],
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Meal Type Filters
+          Text(
+            AppStrings.tr['mealType']!,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              _buildFilterChip(
+                label: AppStrings.tr['normal']!,
+                icon: Icons.restaurant,
+                color: AppColors.normalMeal,
+                isSelected: mealProvider.selectedMealType == 'normal',
+                onTap: () => mealProvider.setMealTypeFilter(
+                  mealProvider.selectedMealType == 'normal' ? null : 'normal',
+                ),
+              ),
+              _buildFilterChip(
+                label: AppStrings.tr['vegetarian']!,
+                icon: Icons.eco,
+                color: AppColors.vegetarianMeal,
+                isSelected: mealProvider.selectedMealType == 'vegetarian',
+                onTap: () => mealProvider.setMealTypeFilter(
+                  mealProvider.selectedMealType == 'vegetarian'
+                      ? null
+                      : 'vegetarian',
+                ),
+              ),
+              _buildFilterChip(
+                label: AppStrings.tr['vegan']!,
+                icon: Icons.spa,
+                color: AppColors.veganMeal,
+                isSelected: mealProvider.selectedMealType == 'vegan',
+                onTap: () => mealProvider.setMealTypeFilter(
+                  mealProvider.selectedMealType == 'vegan' ? null : 'vegan',
+                ),
+              ),
+              _buildFilterChip(
+                label: AppStrings.tr['glutenFree']!,
+                icon: Icons.grain,
+                color: AppColors.glutenFreeMeal,
+                isSelected: mealProvider.selectedMealType == 'glutenFree',
+                onTap: () => mealProvider.setMealTypeFilter(
+                  mealProvider.selectedMealType == 'glutenFree'
+                      ? null
+                      : 'glutenFree',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Cafeteria Filter
+          Text(
+            'Yemekhane Seçimi *',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.error,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              _buildFilterChip(
+                label: 'Merkez',
+                icon: Icons.restaurant_menu,
+                color: Colors.blue,
+                isSelected: mealProvider.selectedCafeteriaId == 'cafeteria-1',
+                onTap: () => mealProvider.setCafeteriaFilter('cafeteria-1'),
+              ),
+              _buildFilterChip(
+                label: 'Mühendislik',
+                icon: Icons.engineering,
+                color: Colors.purple,
+                isSelected: mealProvider.selectedCafeteriaId == 'cafeteria-2',
+                onTap: () => mealProvider.setCafeteriaFilter('cafeteria-2'),
+              ),
+              _buildFilterChip(
+                label: 'Tıp Fakültesi',
+                icon: Icons.local_hospital,
+                color: Colors.red,
+                isSelected: mealProvider.selectedCafeteriaId == 'cafeteria-3',
+                onTap: () => mealProvider.setCafeteriaFilter('cafeteria-3'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Meal Period Filters
+          Text(
+            AppStrings.tr['mealPeriod']!,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              _buildFilterChip(
+                label: AppStrings.tr['breakfast']!,
+                icon: Icons.coffee,
+                color: AppColors.breakfast,
+                isSelected: mealProvider.selectedMealPeriod == 'breakfast',
+                onTap: () => mealProvider.setMealPeriodFilter(
+                  mealProvider.selectedMealPeriod == 'breakfast'
+                      ? null
+                      : 'breakfast',
+                ),
+              ),
+              _buildFilterChip(
+                label: AppStrings.tr['lunch']!,
+                icon: Icons.lunch_dining,
+                color: AppColors.lunch,
+                isSelected: mealProvider.selectedMealPeriod == 'lunch',
+                onTap: () => mealProvider.setMealPeriodFilter(
+                  mealProvider.selectedMealPeriod == 'lunch' ? null : 'lunch',
+                ),
+              ),
+              _buildFilterChip(
+                label: AppStrings.tr['dinner']!,
+                icon: Icons.dinner_dining,
+                color: AppColors.dinner,
+                isSelected: mealProvider.selectedMealPeriod == 'dinner',
+                onTap: () => mealProvider.setMealPeriodFilter(
+                  mealProvider.selectedMealPeriod == 'dinner' ? null : 'dinner',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.2) : AppColors.grey100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? color : AppColors.grey300,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: isSelected ? color : AppColors.grey600),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: isSelected ? color : AppColors.grey700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMealCard(MealModel meal) {
+    final color = Helpers.getMealTypeColor(meal.mealType);
+    final icon = Helpers.getMealTypeIcon(meal.mealType);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.grey200.withOpacity(0.5),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with Icon
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color, size: 32),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        meal.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          meal.mealType.toUpperCase(),
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Description
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              meal.description,
+              style: const TextStyle(
+                color: AppColors.grey600,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Date and Time
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today,
+                    size: 16, color: AppColors.grey500),
+                const SizedBox(width: 6),
+                Text(
+                  Helpers.formatDate(meal.mealDate, 'EEEE, MMM dd'),
+                  style: const TextStyle(
+                    color: AppColors.grey700,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Icon(
+                  Helpers.getMealPeriodIcon(meal.mealPeriod),
+                  size: 16,
+                  color: AppColors.grey500,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  meal.mealPeriod,
+                  style: const TextStyle(
+                    color: AppColors.grey700,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Spots Left
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.people, size: 16, color: AppColors.grey500),
+                const SizedBox(width: 6),
+                Text(
+                  '${meal.availableSpots} yer kaldı',
+                  style: TextStyle(
+                    color: meal.availableSpots < 10
+                        ? AppColors.error
+                        : AppColors.grey700,
+                    fontSize: 13,
+                    fontWeight: meal.availableSpots < 10
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Allergens
+          if (meal.allergens.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 6,
+                children: meal.allergens
+                    .map((allergen) => Chip(
+                          label: Text(
+                            allergen,
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ))
+                    .toList(),
+              ),
+            ),
+          const Divider(height: 24),
+
+          // Price and Button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppStrings.tr['reservationPrice']!,
+                        style: const TextStyle(
+                          color: AppColors.grey600,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        Helpers.formatCurrency(meal.reservationPrice),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryOrange,
+                        ),
+                      ),
+                      Text(
+                        '${AppStrings.tr["walkInPrice"]!}: ${Helpers.formatCurrency(meal.walkInPrice)}',
+                        style: const TextStyle(
+                          color: AppColors.grey500,
+                          fontSize: 11,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: meal.isAvailable
+                        ? () => _addToCart(meal)
+                        : null,
+                    icon: const Icon(Icons.add_shopping_cart, size: 18),
+                    label: const Text('Sepete'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: meal.isAvailable
+                        ? () => _showConfirmDialog(meal)
+                        : null,
+                    icon: const Icon(Icons.flash_on, size: 18),
+                    label: const Text('Hızlı Al'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showConfirmDialog(MealModel meal) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final mealProvider = Provider.of<MealProvider>(context, listen: false);
+    final user = authProvider.currentUser!;
+
+    // Yemekhane seçimi kontrolü
+    if (mealProvider.selectedCafeteriaId == null) {
+      Helpers.showSnackBar(
+        context,
+        'Lütfen önce bir yemekhane seçin',
+        isError: true,
+      );
+      return;
+    }
+
+    if (user.balance < meal.reservationPrice) {
+      Helpers.showSnackBar(
+        context,
+        AppStrings.tr['insufficientBalance']!,
+        isError: true,
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppStrings.tr['confirmReservation']!),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInfoRow(AppStrings.tr['meal']!, meal.name),
+            _buildInfoRow(
+              AppStrings.tr['date']!,
+              Helpers.formatDate(meal.mealDate, 'EEEE, MMM dd'),
+            ),
+            _buildInfoRow(AppStrings.tr['time']!, meal.mealPeriod),
+            _buildInfoRow(
+              AppStrings.tr['price']!,
+              Helpers.formatCurrency(meal.reservationPrice),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppStrings.tr['cancel']!),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _createReservation(meal);
+            },
+            child: Text(AppStrings.tr['confirm']!),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addToCart(MealModel meal) {
+    final mealProvider = Provider.of<MealProvider>(context, listen: false);
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    
+    // Yemekhane seçimi kontrolü
+    if (mealProvider.selectedCafeteriaId == null) {
+      Helpers.showSnackBar(
+        context,
+        'Lütfen önce bir yemekhane seçin',
+        isError: true,
+      );
+      return;
+    }
+    
+    if (cartProvider.isMealInCart(meal.id)) {
+      Helpers.showSnackBar(
+        context,
+        'Bu yemek zaten sepette',
+        isError: true,
+      );
+      return;
+    }
+    
+    cartProvider.addToCart(meal);
+    Helpers.showSnackBar(
+      context,
+      '${meal.name} sepete eklendi',
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.grey600,
+              fontSize: 14,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createReservation(MealModel meal) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final reservationProvider =
+        Provider.of<ReservationProvider>(context, listen: false);
+    final transactionProvider =
+        Provider.of<TransactionProvider>(context, listen: false);
+    final mealProvider = Provider.of<MealProvider>(context, listen: false);
+
+    final success = await reservationProvider.createReservation(
+      userId: authProvider.currentUser!.id,
+      meal: meal,
+    );
+
+    if (success) {
+      // Update balance
+      final newBalance =
+          authProvider.currentUser!.balance - meal.reservationPrice;
+      authProvider.updateBalance(newBalance);
+
+      // Add transaction
+      final transaction = TransactionModel(
+        id: 'trans-${DateTime.now().millisecondsSinceEpoch}',
+        userId: authProvider.currentUser!.id,
+        type: 'reservation',
+        amount: -meal.reservationPrice,
+        balanceAfter: newBalance,
+        description: '${AppStrings.tr["reservationPayment"]!} - ${meal.name}',
+        createdAt: DateTime.now(),
+      );
+      transactionProvider.addTransaction(transaction);
+
+      // Update meal availability
+      mealProvider.updateMeal(meal.copyWith(
+        availableSpots: meal.availableSpots - 1,
+      ));
+
+      Helpers.showSnackBar(context, AppStrings.tr['reservationSuccess']!);
+      Navigator.pop(context);
+    } else {
+      Helpers.showSnackBar(
+        context,
+        reservationProvider.errorMessage ?? AppStrings.tr['errorOccurred']!,
+        isError: true,
+      );
+    }
+  }
+}
+

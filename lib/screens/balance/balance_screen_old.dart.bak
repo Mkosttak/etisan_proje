@@ -1,0 +1,301 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/widgets/custom_button.dart';
+import '../../core/utils/helpers.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/transaction_provider.dart';
+import '../../data/models/transaction_model.dart';
+import '../../data/services/mock_data_service.dart';
+import 'transaction_history_screen.dart';
+
+class BalanceScreen extends StatefulWidget {
+  const BalanceScreen({super.key});
+
+  @override
+  State<BalanceScreen> createState() => _BalanceScreenState();
+}
+
+class _BalanceScreenState extends State<BalanceScreen> {
+  final _amountController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTransactions();
+  }
+
+  Future<void> _loadTransactions() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final transactionProvider =
+        Provider.of<TransactionProvider>(context, listen: false);
+
+    if (authProvider.currentUser != null) {
+      await transactionProvider
+          .loadTransactions(authProvider.currentUser!.id);
+    }
+  }
+
+  void _selectQuickAmount(double amount) {
+    _amountController.text = amount.toStringAsFixed(0);
+  }
+
+  Future<void> _loadBalance() async {
+    final amount = double.tryParse(_amountController.text);
+
+    if (amount == null) {
+      Helpers.showSnackBar(context, 'Geçerli bir tutar giriniz', isError: true);
+      return;
+    }
+
+    if (amount < AppConstants.minBalanceLoad ||
+        amount > AppConstants.maxBalanceLoad) {
+      Helpers.showSnackBar(
+        context,
+        'Tutar ${AppConstants.minBalanceLoad}-${AppConstants.maxBalanceLoad} TL arasında olmalıdır',
+        isError: true,
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final transactionProvider =
+        Provider.of<TransactionProvider>(context, listen: false);
+
+    try {
+      await MockDataService.instance.mockLoadBalance(
+        authProvider.currentUser!.id,
+        amount,
+      );
+
+      final newBalance = authProvider.currentUser!.balance + amount;
+      authProvider.updateBalance(newBalance);
+
+      final transaction = TransactionModel(
+        id: 'trans-${DateTime.now().millisecondsSinceEpoch}',
+        userId: authProvider.currentUser!.id,
+        type: 'load',
+        amount: amount,
+        balanceAfter: newBalance,
+        description: AppStrings.tr['balanceLoaded']!,
+        createdAt: DateTime.now(),
+      );
+
+      transactionProvider.addTransaction(transaction);
+
+      _amountController.clear();
+      Helpers.showSnackBar(context, AppStrings.tr['balanceLoadedSuccess']!);
+    } catch (e) {
+      Helpers.showSnackBar(
+        context,
+        'Bakiye yüklenemedi: $e',
+        isError: true,
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.currentUser!;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppStrings.tr['loadBalance']!),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Current Balance
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryOrange.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.account_balance_wallet,
+                          color: AppColors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        'Kart bakiyeniz',
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    Helpers.formatCurrency(user.balance),
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 42,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Load Amount Section
+            Text(
+              AppStrings.tr['amountToLoad']!,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: '0.00',
+                prefixText: '₺ ',
+                prefixStyle: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Minimum: ₺${AppConstants.minBalanceLoad.toStringAsFixed(0)} - Maksimum: ₺${AppConstants.maxBalanceLoad.toStringAsFixed(0)}',
+              style: const TextStyle(
+                color: AppColors.grey500,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Quick Select
+            Text(
+              AppStrings.tr['quickSelect']!,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: AppConstants.quickBalanceAmounts
+                  .map((amount) => _buildQuickAmountChip(amount))
+                  .toList(),
+            ),
+            const SizedBox(height: 32),
+
+            // Load Button
+            CustomButton(
+              text: '💳 ${AppStrings.tr["loadBalance"]!}',
+              onPressed: _loadBalance,
+              isLoading: _isLoading,
+            ),
+            const SizedBox(height: 16),
+
+            // Mock Payment Note
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.info.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.info.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline,
+                      color: AppColors.info, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      AppStrings.tr['mockPaymentNote']!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.grey700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Transaction History Button
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const TransactionHistoryScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.receipt_long),
+              label: Text(AppStrings.tr['transactionHistory']!),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                minimumSize: const Size(double.infinity, 50),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickAmountChip(double amount) {
+    return GestureDetector(
+      onTap: () => _selectQuickAmount(amount),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primaryOrange.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.primaryOrange),
+        ),
+        child: Text(
+          '₺${amount.toStringAsFixed(0)}',
+          style: const TextStyle(
+            color: AppColors.primaryOrange,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+}
+

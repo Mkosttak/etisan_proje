@@ -1,0 +1,538 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
+import '../../core/utils/helpers.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/reservation_provider.dart';
+import '../../providers/meal_provider.dart';
+import '../balance/balance_screen.dart';
+import '../reservations/create_reservation_screen.dart';
+import '../reservations/reservation_detail_screen.dart';
+import '../reservations/reservation_list_screen.dart';
+import '../swap/swap_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final reservationProvider =
+        Provider.of<ReservationProvider>(context, listen: false);
+    final mealProvider = Provider.of<MealProvider>(context, listen: false);
+
+    if (authProvider.currentUser != null) {
+      await Future.wait([
+        reservationProvider.loadReservations(authProvider.currentUser!.id),
+        mealProvider.loadMeals(),
+      ]);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.currentUser;
+    final reservationProvider = Provider.of<ReservationProvider>(context);
+    final isWeb = Helpers.isWeb(context);
+
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        child: CustomScrollView(
+          slivers: [
+            // App Bar
+            SliverAppBar(
+              expandedHeight: 160,
+              floating: false,
+              pinned: true,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: const BoxDecoration(
+                    gradient: AppColors.darkGradient,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          AppStrings.tr['welcomeBack']!,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user.fullName,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Content
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(isWeb ? 32 : 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Balance Card
+                    _buildBalanceCard(user.balance),
+                    const SizedBox(height: 24),
+
+                    // Quick Actions
+                    Text(
+                      AppStrings.tr['quickActions']!,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildQuickActions(),
+                    const SizedBox(height: 32),
+
+                    // Upcoming Reservations
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          AppStrings.tr['upcomingReservations']!,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (reservationProvider.upcomingReservations.isNotEmpty)
+                          TextButton(
+                            onPressed: () {
+                              // Navigate to reservations tab  
+                              // This will be handled by main navigation
+                            },
+                            child: const Text('Tümünü Gör'),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildUpcomingReservations(
+                        reservationProvider.upcomingReservations),
+                    const SizedBox(height: 24),
+
+                    // Admin Panel Button
+                    if (user.isAdmin) _buildAdminPanelButton(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBalanceCard(double balance) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const BalanceScreen()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryOrange.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.account_balance_wallet,
+                          color: AppColors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        'Kart bakiyeniz',
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    Helpers.formatCurrency(balance),
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.add,
+                color: AppColors.white,
+                size: 28,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActions() {
+    final actions = [
+      {
+        'icon': Icons.restaurant_menu,
+        'label': 'Rezervasyon\nOluştur',
+        'color': AppColors.primaryOrange,
+        'onTap': () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CreateReservationScreen()),
+          );
+        },
+      },
+      {
+        'icon': Icons.swap_horiz,
+        'label': 'Takas',
+        'color': AppColors.secondaryPurple,
+        'onTap': () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const SwapScreen()),
+          );
+        },
+      },
+      {
+        'icon': Icons.qr_code_scanner,
+        'label': 'QR Ödeme',
+        'color': AppColors.secondaryBlue,
+        'onTap': () {
+          Helpers.showSnackBar(
+            context,
+            'QR ödeme özelliği yakında eklenecek',
+          );
+        },
+      },
+      {
+        'icon': Icons.list_alt,
+        'label': 'Rezervasyon\nListesi',
+        'color': AppColors.secondaryGreen,
+        'onTap': () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const ReservationListScreen(),
+            ),
+          );
+        },
+      },
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1.4,
+      ),
+      itemCount: actions.length,
+      itemBuilder: (context, index) {
+        final action = actions[index];
+        return _buildQuickActionCard(
+          icon: action['icon'] as IconData,
+          label: action['label'] as String,
+          color: action['color'] as Color,
+          onTap: action['onTap'] as VoidCallback,
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickActionCard({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.grey200),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.grey200.withOpacity(0.5),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 32),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUpcomingReservations(List reservations) {
+    if (reservations.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: AppColors.grey50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.grey200),
+        ),
+        child: const Column(
+          children: [
+            Icon(Icons.restaurant, size: 48, color: AppColors.grey400),
+            SizedBox(height: 16),
+            Text(
+              'Henüz rezervasyonunuz yok',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.grey600,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Yemek rezervasyonu yaparak başlayın',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.grey500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: reservations.take(3).length,
+      itemBuilder: (context, index) {
+        final reservation = reservations[index];
+        return _buildReservationCard(reservation);
+      },
+    );
+  }
+
+  Widget _buildReservationCard(reservation) {
+    final color = Helpers.getMealPeriodColor(reservation.mealPeriod);
+    final icon = Helpers.getMealPeriodIcon(reservation.mealPeriod);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ReservationDetailScreen(reservation: reservation),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.grey200),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 32),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    reservation.mealName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    Helpers.getRelativeDate(reservation.mealDate),
+                    style: const TextStyle(
+                      color: AppColors.grey600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Helpers.getReservationStatusColor(reservation.status)
+                        .withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    AppStrings.tr[reservation.status.toLowerCase()]!
+                        .toUpperCase(),
+                    style: TextStyle(
+                      color:
+                          Helpers.getReservationStatusColor(reservation.status),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  Helpers.formatCurrency(reservation.price),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryOrange,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminPanelButton() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: AppColors.purpleGradient,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+          );
+        },
+        child: Row(
+          children: [
+            const Icon(Icons.admin_panel_settings,
+                color: AppColors.white, size: 32),
+            const SizedBox(width: 16),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Yönetici Paneli',
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Sistem yönetimi ve raporlar',
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios,
+                color: AppColors.white, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

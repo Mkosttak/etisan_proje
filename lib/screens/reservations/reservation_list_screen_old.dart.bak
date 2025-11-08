@@ -1,0 +1,341 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
+import '../../core/utils/helpers.dart';
+import '../../providers/reservation_provider.dart';
+import '../../data/models/reservation_model.dart';
+import 'reservation_detail_screen.dart';
+import 'create_reservation_screen.dart';
+
+class ReservationListScreen extends StatefulWidget {
+  const ReservationListScreen({super.key});
+
+  @override
+  State<ReservationListScreen> createState() => _ReservationListScreenState();
+}
+
+class _ReservationListScreenState extends State<ReservationListScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reservationProvider = Provider.of<ReservationProvider>(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppStrings.tr['reservationList']!.replaceAll('\n', ' ')),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: AppStrings.tr['upcomingTab']!),
+            Tab(text: AppStrings.tr['pastTab']!),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildReservationList(reservationProvider.upcomingReservations),
+          _buildReservationList(reservationProvider.pastReservations),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const CreateReservationScreen(),
+            ),
+          );
+        },
+        backgroundColor: AppColors.primaryOrange,
+        child: const Icon(Icons.add, color: AppColors.white),
+      ),
+    );
+  }
+
+  Widget _buildReservationList(List<ReservationModel> reservations) {
+    if (reservations.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.restaurant_menu, size: 64, color: AppColors.grey400),
+            SizedBox(height: 16),
+            Text(
+              'Rezervasyon bulunamadı',
+              style: TextStyle(
+                fontSize: 16,
+                color: AppColors.grey600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: reservations.length,
+      itemBuilder: (context, index) {
+        return _buildReservationCard(reservations[index]);
+      },
+    );
+  }
+
+  Widget _buildReservationCard(ReservationModel reservation) {
+    final color = Helpers.getMealPeriodColor(reservation.mealPeriod);
+    final icon = Helpers.getMealPeriodIcon(reservation.mealPeriod);
+    final statusColor = Helpers.getReservationStatusColor(reservation.status);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ReservationDetailScreen(reservation: reservation),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.grey200),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, color: color, size: 32),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          reservation.mealName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          reservation.mealPeriod,
+                          style: const TextStyle(
+                            color: AppColors.grey600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      AppStrings.tr[reservation.status.toLowerCase()]!
+                          .toUpperCase(),
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today,
+                          size: 16, color: AppColors.grey500),
+                      const SizedBox(width: 8),
+                      Text(
+                        Helpers.formatDate(
+                            reservation.mealDate, 'EEEE, MMM dd, yyyy'),
+                        style: const TextStyle(
+                          color: AppColors.grey700,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.payments,
+                              size: 16, color: AppColors.grey500),
+                          const SizedBox(width: 8),
+                          Text(
+                            Helpers.formatCurrency(reservation.price),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (reservation.isActive) ...[
+                        Row(
+                          children: [
+                            if (reservation.canOpenForSwap)
+                              TextButton.icon(
+                                onPressed: () => _openForSwap(reservation),
+                                icon: const Icon(Icons.swap_horiz, size: 18),
+                                label: Text(AppStrings.tr['openForSwap']!),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.secondaryPurple,
+                                ),
+                              ),
+                            const SizedBox(width: 8),
+                            if (reservation.canCancel)
+                              TextButton.icon(
+                                onPressed: () =>
+                                    _cancelReservation(reservation),
+                                icon: const Icon(Icons.cancel, size: 18),
+                                label: const Text('İptal'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.error,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openForSwap(ReservationModel reservation) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Takasa Aç'),
+        content: const Text(
+          'Bu rezervasyonu takasa açmak istediğinize emin misiniz?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppStrings.tr['cancel']!),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final reservationProvider =
+                  Provider.of<ReservationProvider>(context, listen: false);
+
+              final success =
+                  await reservationProvider.openForSwap(reservation.id);
+
+              if (!mounted) return;
+
+              if (success) {
+                Helpers.showSnackBar(context, AppStrings.tr['swapOpened']!);
+              } else {
+                Helpers.showSnackBar(
+                  context,
+                  reservationProvider.errorMessage ??
+                      AppStrings.tr['errorOccurred']!,
+                  isError: true,
+                );
+              }
+            },
+            child: const Text('Onayla'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _cancelReservation(ReservationModel reservation) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppStrings.tr['cancelReservation']!),
+        content: Text(AppStrings.tr['confirmCancel']!),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppStrings.tr['no']!),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final reservationProvider =
+                  Provider.of<ReservationProvider>(context, listen: false);
+
+              final success =
+                  await reservationProvider.cancelReservation(reservation.id);
+
+              if (!mounted) return;
+
+              if (success) {
+                Helpers.showSnackBar(
+                    context, AppStrings.tr['reservationCancelled']!);
+              } else {
+                Helpers.showSnackBar(
+                  context,
+                  reservationProvider.errorMessage ??
+                      AppStrings.tr['errorOccurred']!,
+                  isError: true,
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+            ),
+            child: Text(AppStrings.tr['yesCancel']!),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

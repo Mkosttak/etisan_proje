@@ -1,0 +1,321 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/utils/helpers.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/meal_provider.dart';
+import '../../data/services/mock_data_service.dart';
+
+class PreferencesScreen extends StatefulWidget {
+  const PreferencesScreen({super.key});
+
+  @override
+  State<PreferencesScreen> createState() => _PreferencesScreenState();
+}
+
+class _PreferencesScreenState extends State<PreferencesScreen> {
+  String? _selectedPreference;
+  String? _selectedCafeteria;
+
+  final List<Map<String, dynamic>> _cafeterias = [
+    {
+      'id': 'cafeteria-1',
+      'name': 'Merkez Yemekhane',
+      'icon': Icons.restaurant,
+      'color': AppColors.primaryOrange,
+    },
+    {
+      'id': 'cafeteria-2',
+      'name': 'Mühendislik Fakültesi Yemekhane',
+      'icon': Icons.engineering,
+      'color': AppColors.secondaryGreen,
+    },
+    {
+      'id': 'cafeteria-3',
+      'name': 'Tıp Fakültesi Yemekhane',
+      'icon': Icons.local_hospital,
+      'color': AppColors.info,
+    },
+  ];
+
+  final List<Map<String, dynamic>> _mealPreferences = [
+    {
+      'value': 'normal',
+      'title': 'Normal',
+      'description': 'Tüm yemekler',
+      'icon': Icons.restaurant,
+      'color': AppColors.primaryOrange,
+    },
+    {
+      'value': 'vegetarian',
+      'title': 'Vejetaryen',
+      'description': 'Et içermeyen yemekler',
+      'icon': Icons.eco,
+      'color': AppColors.secondaryGreen,
+    },
+    {
+      'value': 'vegan',
+      'title': 'Vegan',
+      'description': 'Hayvansal ürün içermeyen yemekler',
+      'icon': Icons.local_florist,
+      'color': AppColors.success,
+    },
+    {
+      'value': 'gluten_free',
+      'title': 'Glutensiz',
+      'description': 'Gluten içermeyen yemekler',
+      'icon': Icons.health_and_safety,
+      'color': AppColors.info,
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _selectedPreference = authProvider.currentUser?.mealPreference;
+    _selectedCafeteria = authProvider.currentUser?.preferredCafeteriaId;
+  }
+
+  void _savePreference() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final mealProvider = Provider.of<MealProvider>(context, listen: false);
+    
+    try {
+      // Kullanıcı verisini güncelle
+      final updatedUser = authProvider.currentUser!.copyWith(
+        mealPreference: _selectedPreference,
+        preferredCafeteriaId: _selectedCafeteria,
+      );
+      
+      authProvider.setUser(updatedUser);
+      
+      // MealProvider'a yeni tercihleri uygula (null olabilir)
+      if (_selectedPreference != null) {
+        mealProvider.setUserPreference(_selectedPreference);
+      }
+      if (_selectedCafeteria != null) {
+        mealProvider.setCafeteriaFilter(_selectedCafeteria);
+      }
+      
+      // Mock data'ya da kaydet (kalıcı olsun)
+      MockDataService.instance.updateUserPreferences(
+        userId: authProvider.currentUser!.id,
+        mealPreference: _selectedPreference,
+        preferredCafeteriaId: _selectedCafeteria,
+      );
+      
+      // Otomatik kaydetme için snackbar gösterme
+      // Helpers.showSnackBar(context, 'Tercihiniz kaydedildi');
+    } catch (e) {
+      Helpers.showSnackBar(
+        context,
+        'Tercih kaydedilirken hata oluştu: $e',
+        isError: true,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tercihlerim'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const Text(
+            'Yemekhane Seçimi',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Hangi yemekhaneyi tercih ediyorsun? (Opsiyonel - Aynı gün içinde sadece bir yemekhaneye rezervasyon yapabilirsin)',
+            style: TextStyle(
+              color: AppColors.grey600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ..._cafeterias.map((caf) => _buildCafeteriaCard(caf)),
+          const SizedBox(height: 32),
+          const Text(
+            'Yemek Tercihini Seç',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Rezervasyon yaparken tercih ettiğin yemek türü otomatik olarak filtrelenecektir. (Opsiyonel)',
+            style: TextStyle(
+              color: AppColors.grey600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ..._mealPreferences.map((pref) => _buildPreferenceCard(pref)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreferenceCard(Map<String, dynamic> pref) {
+    final isSelected = _selectedPreference == pref['value'];
+    
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: isSelected ? 4 : 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isSelected ? pref['color'] : Colors.transparent,
+          width: 2,
+        ),
+      ),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedPreference = pref['value'];
+          });
+          // Otomatik kaydet
+          _savePreference();
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: pref['color'].withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  pref['icon'],
+                  color: pref['color'],
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      pref['title'],
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      pref['description'],
+                      style: TextStyle(
+                        color: AppColors.grey600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: pref['color'],
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check,
+                    color: AppColors.white,
+                    size: 18,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCafeteriaCard(Map<String, dynamic> caf) {
+    final isSelected = _selectedCafeteria == caf['id'];
+    
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: isSelected ? 4 : 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isSelected ? caf['color'] : Colors.transparent,
+          width: 2,
+        ),
+      ),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedCafeteria = caf['id'];
+          });
+          // Otomatik kaydet
+          _savePreference();
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: caf['color'].withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  caf['icon'],
+                  color: caf['color'],
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  caf['name'],
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (isSelected)
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: caf['color'],
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check,
+                    color: AppColors.white,
+                    size: 18,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

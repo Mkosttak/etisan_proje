@@ -1,0 +1,440 @@
+1	import 'package:flutter/material.dart';
+1	import 'package:provider/provider.dart';
+1	import '../../core/constants/app_colors.dart';
+1	import '../../core/utils/helpers.dart';
+1	import '../../providers/auth_provider.dart';
+1	import '../../providers/reservation_provider.dart';
+1	import 'reservation_detail_screen.dart';
+1	import 'create_reservation_screen.dart';
+1	
+1	class ReservationListScreen extends StatefulWidget {
+1	  const ReservationListScreen({super.key});
+1	
+1	  @override
+1	  State<ReservationListScreen> createState() => _ReservationListScreenState();
+1	}
+1	
+1	class _ReservationListScreenState extends State<ReservationListScreen>
+1	    with TickerProviderStateMixin {
+1	  late TabController _tabController;
+1	  late AnimationController _animationController;
+1	  late Animation<double> _fadeAnimation;
+1	
+1	  @override
+1	  void initState() {
+1	    super.initState();
+1	    _tabController = TabController(length: 2, vsync: this);
+1	    _animationController = AnimationController(
+1	      duration: const Duration(milliseconds: 600),
+1	      vsync: this,
+1	    );
+1	    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+1	      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+1	    );
+1	    _animationController.forward();
+1	    _loadData();
+1	  }
+1	
+1	  @override
+1	  void dispose() {
+1	    _tabController.dispose();
+1	    _animationController.dispose();
+1	    super.dispose();
+1	  }
+1	
+1	  Future<void> _loadData() async {
+1	    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+1	    final reservationProvider = Provider.of<ReservationProvider>(context, listen: false);
+1	
+1	    if (authProvider.currentUser != null) {
+1	      await reservationProvider.loadReservations(authProvider.currentUser!.id);
+1	    }
+1	  }
+1	
+1	  @override
+1	  Widget build(BuildContext context) {
+1	    final authProvider = Provider.of<AuthProvider>(context);
+1	    final reservationProvider = Provider.of<ReservationProvider>(context);
+1	    final user = authProvider.currentUser!;
+1	
+1	    final upcomingReservations = reservationProvider.upcomingReservations
+1	        .where((r) => r.userId == user.id && r.status == 'reserved')
+1	        .toList();
+1	
+1	    final pastReservations = reservationProvider.pastReservations
+1	        .where((r) => r.userId == user.id)
+1	        .toList();
+1	
+1	    return Scaffold(
+1	      backgroundColor: AppColors.backgroundLight,
+1	      appBar: AppBar(
+1	        title: const Text('Rezervasyonlarım'),
+1	        backgroundColor: AppColors.primaryOrange,
+1	        bottom: TabBar(
+1	          controller: _tabController,
+1	          indicatorColor: Colors.white,
+1	          indicatorWeight: 3,
+1	          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+1	          unselectedLabelStyle: const TextStyle(fontSize: 15),
+1	          tabs: [
+1	            Tab(
+1	              child: Row(
+1	                mainAxisAlignment: MainAxisAlignment.center,
+1	                children: [
+1	                  const Icon(Icons.upcoming, size: 18),
+1	                  const SizedBox(width: 8),
+1	                  Text('Aktif (${upcomingReservations.length})'),
+1	                ],
+1	              ),
+1	            ),
+1	            Tab(
+1	              child: Row(
+1	                mainAxisAlignment: MainAxisAlignment.center,
+1	                children: [
+1	                  const Icon(Icons.history, size: 18),
+1	                  const SizedBox(width: 8),
+1	                  Text('Geçmiş (${pastReservations.length})'),
+1	                ],
+1	              ),
+1	            ),
+1	          ],
+1	        ),
+1	      ),
+1	      body: FadeTransition(
+1	        opacity: _fadeAnimation,
+1	        child: TabBarView(
+1	          controller: _tabController,
+1	          children: [
+1	            _buildReservationList(upcomingReservations, true),
+1	            _buildReservationList(pastReservations, false),
+1	          ],
+1	        ),
+1	      ),
+1	      floatingActionButton: FloatingActionButton.extended(
+1	        onPressed: () {
+1	          Navigator.of(context).push(
+1	            MaterialPageRoute(builder: (_) => const CreateReservationScreen()),
+1	          );
+1	        },
+1	        backgroundColor: AppColors.primaryOrange,
+1	        icon: const Icon(Icons.add),
+1	        label: const Text('Yeni Rezervasyon'),
+1	      ),
+1	    );
+1	  }
+1	
+1	  Widget _buildReservationList(List reservations, bool isUpcoming) {
+1	    if (reservations.isEmpty) {
+1	      return Center(
+1	        child: Column(
+1	          mainAxisAlignment: MainAxisAlignment.center,
+1	          children: [
+1	            Container(
+1	              padding: const EdgeInsets.all(40),
+1	              decoration: BoxDecoration(
+1	                color: AppColors.grey100,
+1	                shape: BoxShape.circle,
+1	              ),
+1	              child: Icon(
+1	                isUpcoming ? Icons.event_note : Icons.history,
+1	                size: 80,
+1	                color: AppColors.grey400,
+1	              ),
+1	            ),
+1	            const SizedBox(height: 24),
+1	            Text(
+1	              isUpcoming ? 'Aktif Rezervasyon Yok' : 'Geçmiş Rezervasyon Yok',
+1	              style: const TextStyle(
+1	                fontSize: 20,
+1	                fontWeight: FontWeight.bold,
+1	                color: AppColors.grey900,
+1	              ),
+1	            ),
+1	            const SizedBox(height: 12),
+1	            const Text(
+1	              'Henüz rezervasyon bulunmuyor',
+1	              style: TextStyle(
+1	                fontSize: 14,
+1	                color: AppColors.grey600,
+1	              ),
+1	            ),
+1	          ],
+1	        ),
+1	      );
+1	    }
+1	
+1	    return RefreshIndicator(
+1	      onRefresh: _loadData,
+1	      color: AppColors.primaryOrange,
+1	      child: ListView.builder(
+1	        padding: const EdgeInsets.all(20),
+1	        itemCount: reservations.length,
+1	        itemBuilder: (context, index) {
+1	          final reservation = reservations[index];
+1	          return _buildReservationCard(reservation, isUpcoming);
+1	        },
+1	      ),
+1	    );
+1	  }
+1	
+1	  Widget _buildReservationCard(reservation, bool isUpcoming) {
+1	    Color statusColor;
+1	    IconData statusIcon;
+1	    String statusText;
+1	
+1	    switch (reservation.status) {
+1	      case 'reserved':
+1	        statusColor = AppColors.secondaryBlue;
+1	        statusIcon = Icons.check_circle;
+1	        statusText = 'Aktif';
+1	        break;
+1	      case 'consumed':
+1	        statusColor = AppColors.secondaryGreen;
+1	        statusIcon = Icons.restaurant;
+1	        statusText = 'Tüketildi';
+1	        break;
+1	      case 'cancelled':
+1	        statusColor = AppColors.secondaryRed;
+1	        statusIcon = Icons.cancel;
+1	        statusText = 'İptal';
+1	        break;
+1	      case 'transferred':
+1	        statusColor = AppColors.secondaryPurple;
+1	        statusIcon = Icons.swap_horiz;
+1	        statusText = 'Transfer';
+1	        break;
+1	      default:
+1	        statusColor = AppColors.grey500;
+1	        statusIcon = Icons.info;
+1	        statusText = 'Bilinmiyor';
+1	    }
+1	
+1	    Color periodColor;
+1	    IconData periodIcon;
+1	
+1	    switch (reservation.mealPeriod) {
+1	      case 'breakfast':
+1	        periodColor = AppColors.breakfast;
+1	        periodIcon = Icons.coffee;
+1	        break;
+1	      case 'lunch':
+1	        periodColor = AppColors.lunch;
+1	        periodIcon = Icons.lunch_dining;
+1	        break;
+1	      case 'dinner':
+1	        periodColor = AppColors.dinner;
+1	        periodIcon = Icons.dinner_dining;
+1	        break;
+1	      default:
+1	        periodColor = AppColors.grey500;
+1	        periodIcon = Icons.restaurant;
+1	    }
+1	
+1	    return Container(
+1	      margin: const EdgeInsets.only(bottom: 16),
+1	      decoration: BoxDecoration(
+1	        color: Colors.white,
+1	        borderRadius: BorderRadius.circular(20),
+1	        boxShadow: [
+1	          BoxShadow(
+1	            color: Colors.black.withOpacity(0.08),
+1	            blurRadius: 15,
+1	            offset: const Offset(0, 5),
+1	          ),
+1	        ],
+1	      ),
+1	      child: Material(
+1	        color: Colors.transparent,
+1	        child: InkWell(
+1	          onTap: () {
+1	            Navigator.of(context).push(
+1	              MaterialPageRoute(
+1	                builder: (_) => ReservationDetailScreen(reservation: reservation),
+1	              ),
+1	            );
+1	          },
+1	          borderRadius: BorderRadius.circular(20),
+1	          child: Padding(
+1	            padding: const EdgeInsets.all(20),
+1	            child: Column(
+1	              crossAxisAlignment: CrossAxisAlignment.start,
+1	              children: [
+1	                Row(
+1	                  children: [
+1	                    Container(
+1	                      padding: const EdgeInsets.all(14),
+1	                      decoration: BoxDecoration(
+1	                        gradient: LinearGradient(
+1	                          begin: Alignment.topLeft,
+1	                          end: Alignment.bottomRight,
+1	                          colors: [
+1	                            periodColor.withOpacity(0.8),
+1	                            periodColor,
+1	                          ],
+1	                        ),
+1	                        borderRadius: BorderRadius.circular(14),
+1	                        boxShadow: [
+1	                          BoxShadow(
+1	                            color: periodColor.withOpacity(0.3),
+1	                            blurRadius: 8,
+1	                            offset: const Offset(0, 4),
+1	                          ),
+1	                        ],
+1	                      ),
+1	                      child: Icon(periodIcon, color: Colors.white, size: 28),
+1	                    ),
+1	                    const SizedBox(width: 16),
+1	                    Expanded(
+1	                      child: Column(
+1	                        crossAxisAlignment: CrossAxisAlignment.start,
+1	                        children: [
+1	                          Text(
+1	                            reservation.mealName,
+1	                            style: const TextStyle(
+1	                              fontSize: 17,
+1	                              fontWeight: FontWeight.bold,
+1	                              color: AppColors.grey900,
+1	                            ),
+1	                            maxLines: 1,
+1	                            overflow: TextOverflow.ellipsis,
+1	                          ),
+1	                          const SizedBox(height: 6),
+1	                          Row(
+1	                            children: [
+1	                              Icon(Icons.calendar_today, size: 14, color: AppColors.grey500),
+1	                              const SizedBox(width: 6),
+1	                              Text(
+1	                                Helpers.formatDate(reservation.mealDate, 'dd MMM yyyy'),
+1	                                style: const TextStyle(
+1	                                  fontSize: 13,
+1	                                  color: AppColors.grey600,
+1	                                ),
+1	                              ),
+1	                              const SizedBox(width: 12),
+1	                              Icon(Icons.access_time, size: 14, color: AppColors.grey500),
+1	                              const SizedBox(width: 6),
+1	                              Text(
+1	                                Helpers.formatDate(reservation.mealDate, 'HH:mm'),
+1	                                style: const TextStyle(
+1	                                  fontSize: 13,
+1	                                  color: AppColors.grey600,
+1	                                ),
+1	                              ),
+1	                            ],
+1	                          ),
+1	                        ],
+1	                      ),
+1	                    ),
+1	                    Container(
+1	                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+1	                      decoration: BoxDecoration(
+1	                        color: statusColor.withOpacity(0.1),
+1	                        borderRadius: BorderRadius.circular(8),
+1	                      ),
+1	                      child: Row(
+1	                        mainAxisSize: MainAxisSize.min,
+1	                        children: [
+1	                          Icon(statusIcon, size: 14, color: statusColor),
+1	                          const SizedBox(width: 6),
+1	                          Text(
+1	                            statusText,
+1	                            style: TextStyle(
+1	                              fontSize: 12,
+1	                              fontWeight: FontWeight.w600,
+1	                              color: statusColor,
+1	                            ),
+1	                          ),
+1	                        ],
+1	                      ),
+1	                    ),
+1	                  ],
+1	                ),
+1	                const SizedBox(height: 16),
+1	                Container(
+1	                  padding: const EdgeInsets.all(14),
+1	                  decoration: BoxDecoration(
+1	                    color: AppColors.grey50,
+1	                    borderRadius: BorderRadius.circular(12),
+1	                  ),
+1	                  child: Row(
+1	                    children: [
+1	                      Expanded(
+1	                        child: _buildInfoItem(
+1	                          Icons.location_on,
+1	                          reservation.cafeteriaName,
+1	                        ),
+1	                      ),
+1	                      Container(
+1	                        width: 1,
+1	                        height: 30,
+1	                        color: AppColors.grey300,
+1	                      ),
+1	                      Expanded(
+1	                        child: _buildInfoItem(
+1	                          Icons.account_balance_wallet,
+1	                          Helpers.formatCurrency(reservation.price),
+1	                        ),
+1	                      ),
+1	                    ],
+1	                  ),
+1	                ),
+1	                if (isUpcoming && reservation.isTransferOpen) ...[
+1	                  const SizedBox(height: 12),
+1	                  Container(
+1	                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+1	                    decoration: BoxDecoration(
+1	                      color: AppColors.warning.withOpacity(0.1),
+1	                      borderRadius: BorderRadius.circular(8),
+1	                      border: Border.all(
+1	                        color: AppColors.warning.withOpacity(0.3),
+1	                      ),
+1	                    ),
+1	                    child: const Row(
+1	                      mainAxisSize: MainAxisSize.min,
+1	                      children: [
+1	                        Icon(Icons.swap_horiz, size: 16, color: AppColors.warning),
+1	                        SizedBox(width: 8),
+1	                        Text(
+1	                          'Takasa Açık',
+1	                          style: TextStyle(
+1	                            fontSize: 12,
+1	                            fontWeight: FontWeight.w600,
+1	                            color: AppColors.warning,
+1	                          ),
+1	                        ),
+1	                      ],
+1	                    ),
+1	                  ),
+1	                ],
+1	              ],
+1	            ),
+1	          ),
+1	        ),
+1	      ),
+1	    );
+1	  }
+1	
+1	  Widget _buildInfoItem(IconData icon, String text) {
+1	    return Row(
+1	      mainAxisAlignment: MainAxisAlignment.center,
+1	      children: [
+1	        Icon(icon, size: 16, color: AppColors.grey600),
+1	        const SizedBox(width: 6),
+1	        Flexible(
+1	          child: Text(
+1	            text,
+1	            style: const TextStyle(
+1	              fontSize: 13,
+1	              fontWeight: FontWeight.w600,
+1	              color: AppColors.grey700,
+1	            ),
+1	            maxLines: 1,
+1	            overflow: TextOverflow.ellipsis,
+1	          ),
+1	        ),
+1	      ],
+1	    );
+1	  }
+1	}
+1	
+
