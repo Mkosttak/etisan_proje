@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withOpacity(0.3),
+            color: AppColors.primaryOrange.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -211,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -230,10 +230,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -342,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.primaryOrange.withOpacity(0.1),
+                color: AppColors.primaryOrange.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -469,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           border: isWeb ? Border.all(color: AppColors.grey200) : null,
           boxShadow: [
             BoxShadow(
-              color: AppColors.getShadow(context).withOpacity(isWeb ? 0.1 : 0.15),
+              color: AppColors.getShadow(context).withValues(alpha: isWeb ? 0.1 : 0.15),
               blurRadius: isWeb ? 12 : 15,
               offset: const Offset(0, 6),
             ),
@@ -483,7 +483,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: periodColor.withOpacity(0.1),
+                    color: periodColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(periodIcon, color: periodColor, size: 24),
@@ -515,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryOrange.withOpacity(0.12),
+                    color: AppColors.primaryOrange.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -675,7 +675,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withOpacity(0.1),
+                  color: AppColors.primaryOrange.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -735,7 +735,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.getShadow(context).withOpacity(0.08),
+            color: AppColors.getShadow(context).withValues(alpha: 0.08),
             blurRadius: 24,
             offset: const Offset(0, 16),
           ),
@@ -840,7 +840,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primaryOrange.withOpacity(0.08),
+        color: AppColors.primaryOrange.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -919,7 +919,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         border: Border.all(color: AppColors.grey200),
         boxShadow: [
           BoxShadow(
-            color: AppColors.getShadow(context).withOpacity(0.08),
+            color: AppColors.getShadow(context).withValues(alpha: 0.08),
             blurRadius: 18,
             offset: const Offset(0, 12),
           ),
@@ -1047,7 +1047,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withOpacity(0.12),
+                  color: AppColors.primaryOrange.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(icon, color: AppColors.primaryOrange),
