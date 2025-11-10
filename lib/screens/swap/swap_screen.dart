@@ -468,20 +468,27 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
         ),
         child: Row(
           children: [
-            Radio<String>(
-              value: label,
-              groupValue: _selectedCafeteria,
-              onChanged: (_) => onTap(),
-              activeColor: AppColors.secondaryGreen,
-              fillColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return AppColors.secondaryGreen;
-                }
-                return AppColors.grey400;
-              }),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
+            // Radio widget yerine custom indicator kullanıyoruz (deprecated groupValue/onChanged yerine)
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? AppColors.secondaryGreen : AppColors.grey400,
+                  width: 2,
+                ),
+                color: isSelected ? AppColors.secondaryGreen : Colors.transparent,
+              ),
+              child: isSelected
+                  ? const Icon(
+                      Icons.check,
+                      size: 12,
+                      color: Colors.white,
+                    )
+                  : null,
             ),
+            const SizedBox(width: 12),
             Icon(
               icon,
               color: isSelected
@@ -590,20 +597,27 @@ class _SwapScreenState extends State<SwapScreen> with TickerProviderStateMixin {
         ),
         child: Row(
           children: [
-            Radio<String?>(
-              value: value,
-              groupValue: _selectedMealType,
-              onChanged: (_) => onTap(),
-              activeColor: AppColors.secondaryGreen,
-              fillColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return AppColors.secondaryGreen;
-                }
-                return AppColors.grey400;
-              }),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
+            // Radio widget yerine custom indicator kullanıyoruz (deprecated groupValue/onChanged yerine)
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? AppColors.secondaryGreen : AppColors.grey400,
+                  width: 2,
+                ),
+                color: isSelected ? AppColors.secondaryGreen : Colors.transparent,
+              ),
+              child: isSelected
+                  ? const Icon(
+                      Icons.check,
+                      size: 12,
+                      color: Colors.white,
+                    )
+                  : null,
             ),
+            const SizedBox(width: 12),
             Icon(
               icon,
               color: isSelected
@@ -1993,7 +2007,7 @@ class _ModernSwapCardState extends State<_ModernSwapCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+        transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0, _isHovered ? 1.02 : 1.0, 1.0),
         decoration: BoxDecoration(
           color: AppColors.webCard,
           borderRadius: BorderRadius.circular(16),
