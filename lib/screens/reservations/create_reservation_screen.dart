@@ -1794,7 +1794,7 @@ class _ModernMealCardState extends State<_ModernMealCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+        transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0, _isHovered ? 1.02 : 1.0, 1.0),
         decoration: BoxDecoration(
           color: AppColors.webCard,
           borderRadius: BorderRadius.circular(16),
