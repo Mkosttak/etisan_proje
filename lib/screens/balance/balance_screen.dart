@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/layout/app_page_container.dart';
+import '../../core/layout/web_layout.dart';
 import '../../core/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/transaction_provider.dart';
@@ -219,89 +220,99 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
 
   Widget _buildWebLayout(BuildContext context, user,
       List<TransactionModel> recentTransactions) {
-    return Scaffold(
-      backgroundColor: AppColors.webBackground,
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: AppPageContainer(
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Bakiye Yükleme',
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.getTextPrimary(context),
+    return WebLayout(
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: AppPageContainer(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Bakiye Yükleme',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.getTextPrimary(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Hoş geldiniz, ${user.fullName}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.getTextSecondary(context),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Hoş geldiniz, ${user.fullName}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.getTextSecondary(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: AppColors.webCard,
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 28,
-                          offset: const Offset(0, 18),
-                        ),
-                      ],
-                    ),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final isWide = constraints.maxWidth > 900;
+                    const SizedBox(height: 32),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.webCard,
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 28,
+                            offset: const Offset(0, 18),
+                          ),
+                        ],
+                      ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isWide = constraints.maxWidth > 900;
 
-                        final formColumn = Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildBalanceCard(user, isWeb: true),
-                            const SizedBox(height: 24),
-                            _buildLoadBalanceSection(isWeb: true),
-                          ],
-                        );
-
-                        final transactionsColumn = _buildRecentTransactions(
-                          recentTransactions,
-                          isWeb: true,
-                        );
-
-                        if (isWide) {
-                          return Row(
+                          final formColumn = Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Expanded(flex: 3, child: formColumn),
-                              const SizedBox(width: 32),
-                              Expanded(flex: 2, child: transactionsColumn),
+                              _buildBalanceCard(user, isWeb: true),
+                              const SizedBox(height: 24),
+                              _buildLoadBalanceSection(isWeb: true),
                             ],
                           );
-                        }
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            formColumn,
-                            const SizedBox(height: 32),
-                            transactionsColumn,
-                          ],
-                        );
-                      },
+                          final transactionsColumn = _buildRecentTransactions(
+                            recentTransactions,
+                            isWeb: true,
+                          );
+
+                          if (isWide) {
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: formColumn,
+                                ),
+                                const SizedBox(width: 32),
+                                Expanded(
+                                  flex: 2,
+                                  child: transactionsColumn,
+                                ),
+                              ],
+                            );
+                          }
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              formColumn,
+                              const SizedBox(height: 32),
+                              transactionsColumn,
+                            ],
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -314,7 +325,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
     if (isWeb) {
       final firstName = user.fullName.split(' ').first;
       return Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(28),
@@ -329,11 +340,12 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.primaryOrange.withOpacity(0.12),
                     shape: BoxShape.circle,
@@ -341,50 +353,53 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                   child: const Icon(
                     Icons.account_balance_wallet,
                     color: AppColors.primaryOrange,
-                    size: 28,
+                    size: 24,
                   ),
                 ),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hoş geldiniz, $firstName',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.grey600,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Hoş geldiniz, $firstName',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.grey600,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Mevcut bakiyeniz',
-                      style: TextStyle(
-                        color: AppColors.grey500,
-                        fontSize: 13,
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Mevcut bakiyeniz',
+                        style: TextStyle(
+                          color: AppColors.grey500,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Text(
               Helpers.formatCurrency(user.balance),
               style: const TextStyle(
-                fontSize: 48,
+                fontSize: 40,
                 fontWeight: FontWeight.w800,
                 color: AppColors.primaryOrange,
-                letterSpacing: -1.2,
+                letterSpacing: -1.0,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Row(
               children: const [
                 Icon(
                   Icons.shield_outlined,
                   color: AppColors.grey500,
-                  size: 20,
+                  size: 18,
                 ),
                 SizedBox(width: 8),
                 Expanded(
@@ -392,7 +407,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                     'Ödeme altyapımız ETİSAN güvencesiyle korunmaktadır.',
                     style: TextStyle(
                       color: AppColors.grey500,
-                      fontSize: 13,
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -529,7 +544,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
               ];
 
         return Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(isWeb ? 20 : 24),
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(24),
@@ -538,6 +553,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
@@ -553,7 +569,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               
               // Quick Amount Buttons
               Text(
@@ -564,17 +580,17 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                   color: AppColors.getTextSecondary(context),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Wrap(
-                spacing: 10,
-                runSpacing: 10,
+                spacing: 8,
+                runSpacing: 8,
                 children: quickAmounts.map((amount) {
                   final isSelected = _amountController.text == amount.toStringAsFixed(0);
                   return InkWell(
                     onTap: () => _selectQuickAmount(amount),
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.primaryOrange
@@ -600,7 +616,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                                   ? AppColors.grey700
                                   : AppColors.getChipText(context)),
                           fontWeight: FontWeight.w600,
-                          fontSize: 15,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -608,7 +624,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                 }).toList(),
               ),
               
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               
               // Custom Amount Input
               Text(
@@ -619,14 +635,13 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                   color: AppColors.getTextSecondary(context),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               TextField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   hintText: 'Tutar giriniz',
-                  prefixIcon: Icon(Icons.attach_money, color: AppColors.getIconColor(context)),
                   suffixText: 'TL',
                   filled: true,
                   fillColor:
@@ -647,15 +662,16 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: AppColors.primaryOrange, width: 2),
                   ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.getTextPrimary(context),
                 ),
               ),
               
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               
               Text(
                 'Min: ${AppConstants.minBalanceLoad} TL - Max: ${AppConstants.maxBalanceLoad} TL',
@@ -665,7 +681,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                 ),
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               
               // Load Button
               SizedBox(
@@ -674,7 +690,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                   onPressed: _isLoading ? null : _loadBalance,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryOrange,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -691,13 +707,14 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                         )
                       : const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.check_circle, size: 20),
+                            Icon(Icons.check_circle, size: 18),
                             SizedBox(width: 8),
                             Text(
                               'Bakiye Yükle',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -738,6 +755,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
           ],
         ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -780,6 +798,7 @@ class _BalanceScreenState extends State<BalanceScreen> with SingleTickerProvider
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.receipt_long,
                       size: 48, color: AppColors.getIconColor(context)),

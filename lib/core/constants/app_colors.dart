@@ -149,15 +149,15 @@ class AppColors {
   /// Overlay color based on theme (for hover, pressed states)
   static Color getOverlay(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark 
-        ? white.withOpacity(0.1) 
-        : black.withOpacity(0.05);
+        ? white.withValues(alpha: 0.1) 
+        : black.withValues(alpha: 0.05);
   }
 
   /// Shadow color based on theme
   static Color getShadow(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark 
-        ? black.withOpacity(0.3) 
-        : black.withOpacity(0.1);
+        ? black.withValues(alpha: 0.3) 
+        : black.withValues(alpha: 0.1);
   }
 
   /// Input fill color based on theme

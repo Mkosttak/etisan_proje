@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
-import 'login_screen.dart';
-import '../home/main_navigation.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -74,13 +73,13 @@ class _SplashScreenState extends State<SplashScreen>
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
     if (authProvider.isAuthenticated) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainNavigation()),
-      );
+      if (mounted) {
+        context.go('/home');
+      }
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      if (mounted) {
+        context.go('/login');
+      }
     }
   }
 
@@ -112,7 +111,7 @@ class _SplashScreenState extends State<SplashScreen>
                     height: 200,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.white.withOpacity(0.05),
+                      color: AppColors.white.withValues(alpha: 0.05),
                     ),
                   ),
                 ),
@@ -142,13 +141,13 @@ class _SplashScreenState extends State<SplashScreen>
                                 borderRadius: BorderRadius.circular(32),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primaryOrange.withOpacity(0.3),
+                                    color: AppColors.primaryOrange.withValues(alpha: 0.3),
                                     blurRadius: 30,
                                     spreadRadius: 5,
                                     offset: const Offset(0, 10),
                                   ),
                                   BoxShadow(
-                                    color: AppColors.black.withOpacity(0.1),
+                                    color: AppColors.black.withValues(alpha: 0.1),
                                     blurRadius: 20,
                                     offset: const Offset(0, 5),
                                   ),
@@ -218,7 +217,7 @@ class _SplashScreenState extends State<SplashScreen>
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.white.withOpacity(0.1),
+                        color: AppColors.white.withValues(alpha: 0.1),
                       ),
                       child: const CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),

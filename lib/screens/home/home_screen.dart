@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/layout/app_page_container.dart';
+import '../../core/layout/web_layout.dart';
 import '../../core/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reservation_provider.dart';
 import '../../providers/meal_provider.dart';
+import '../../data/models/meal_model.dart';
 import '../balance/balance_screen.dart';
-import '../reservations/create_reservation_screen.dart';
 import '../reservations/reservation_detail_screen.dart';
 import '../reservations/reservation_list_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../profile/profile_screen.dart';
-import '../swap/swap_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -454,11 +454,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ReservationDetailScreen(reservation: reservation),
-          ),
-        );
+        if (Helpers.isWeb(context)) {
+          context.push('/reservation/${reservation.id}');
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ReservationDetailScreen(reservation: reservation),
+            ),
+          );
+        }
       },
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: isWeb ? 0 : 20, vertical: 8),
@@ -564,404 +568,501 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     List upcomingReservations, {
     required int totalReservations,
   }) {
-    return Scaffold(
-      backgroundColor: AppColors.webBackground,
-      body: SafeArea(
+    final firstName = user.fullName.split(' ').first;
+    final nextReservation = upcomingReservations.isNotEmpty ? upcomingReservations.first : null;
+    
+    return WebLayout(
+      child: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadData,
-          color: AppColors.primaryOrange,
-          child: CustomScrollView(
+          color: AppColors.secondaryGreen,
+          child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: AppPageContainer(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildWebHeader(context, user),
-                      const SizedBox(height: 32),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildWebHeroCard(
-                                  context,
-                                  user,
-                                  totalReservations: totalReservations,
-                                  upcomingCount: upcomingReservations.length,
-                                ),
-                                const SizedBox(height: 24),
-                                _buildUpcomingReservations(
-                                  context,
-                                  upcomingReservations,
-                                  isWeb: true,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 24),
-                          SizedBox(
-                            width: 320,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildBalanceSummaryCard(context, user),
-                                const SizedBox(height: 24),
-                                _buildQuickActionsPanel(context),
-                                const SizedBox(height: 24),
-                                _buildInsightsPanel(
-                                  context,
-                                  upcomingCount: upcomingReservations.length,
-                                  totalReservations: totalReservations,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 48),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWebHeader(BuildContext context, user) {
-    final firstName = user.fullName.split(' ').first;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Ana Sayfa',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.grey900,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Merhaba $firstName, bugün neler yapmak istersin?',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.grey600,
-                  ),
-            ),
-          ],
-        ),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.webCard,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.grey200),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.person,
-                  color: AppColors.primaryOrange,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.fullName,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.grey900,
-                        ),
-                  ),
-                  Text(
-                    user.role,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.grey500,
-                        ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWebHeroCard(
-    BuildContext context,
-    user, {
-    required int totalReservations,
-    required int upcomingCount,
-  }) {
-    final hour = DateTime.now().hour;
-    String greeting;
-
-    if (hour < 12) {
-      greeting = 'Günaydın';
-    } else if (hour < 17) {
-      greeting = 'İyi günler';
-    } else {
-      greeting = 'İyi akşamlar';
-    }
-
-    final firstName = user.fullName.split(' ').first;
-
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: AppColors.webCard,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.getShadow(context).withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 16),
-          ),
-        ],
-        border: Border.all(color: AppColors.grey200),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
+            padding: const EdgeInsets.all(32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '$greeting, $firstName!',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.grey900,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Rezervasyonlarını ve bakiye hareketlerini tek bir yerden yönet.',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.grey600,
-                      ),
-                ),
-                const SizedBox(height: 24),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
+                // Header with Profile Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildHeroActionButton(
-                      context,
-                      label: 'Yeni Rezervasyon Yap',
-                      icon: Icons.add_circle,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const CreateReservationScreen(),
+                    Text(
+                      'Hoş Geldin, $firstName',
+                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.grey900,
+                            fontSize: 32,
                           ),
-                        );
-                      },
-                      isPrimary: true,
                     ),
-                    _buildHeroActionButton(
-                      context,
-                      label: 'Takas Fırsatları',
-                      icon: Icons.swap_horiz,
+                    // Profile Button
+                    InkWell(
                       onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const SwapScreen()),
-                        );
+                        context.go('/profile');
                       },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.webCard,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.grey200),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  user.fullName[0].toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryOrange,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Profilim',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.grey900,
+                                        fontSize: 14,
+                                      ),
+                                ),
+                                Text(
+                                  user.email,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.grey600,
+                                        fontSize: 12,
+                                      ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.chevron_right,
+                              color: AppColors.grey600,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 32),
-          SizedBox(
-            width: 220,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+                const SizedBox(height: 32),
+                
+                // Bakiye ve Rezervasyon Kartları
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Bakiye Kartı
+                    Expanded(
+                      flex: 1,
+                      child: _buildWebBalanceCard(context, user),
+                    ),
+                    const SizedBox(width: 24),
+                    // Sıradaki Rezervasyon Kartı
+                    Expanded(
+                      flex: 1,
+                      child: _buildWebNextReservationCard(context, nextReservation),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 40),
+                
+                // Hızlı İşlemler Başlığı
                 Text(
-                  'Bugünün Planı',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.grey900,
-                      ),
-                ),
-                const SizedBox(height: 16),
-                _buildSummaryTile(
-                  context,
-                  icon: Icons.calendar_month,
-                  label: 'Toplam Rezervasyon',
-                  value: '$totalReservations',
-                ),
-                const SizedBox(height: 12),
-                _buildSummaryTile(
-                  context,
-                  icon: Icons.access_time,
-                  label: 'Bekleyen Rezervasyon',
-                  value: '$upcomingCount',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryTile(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.primaryOrange.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primaryOrange),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppColors.grey600,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
+                  'Hızlı İşlemler',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.grey900,
+                        fontSize: 24,
                       ),
                 ),
+                const SizedBox(height: 20),
+                
+                // Hızlı İşlemler Kartları
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildWebQuickActionCard(
+                        context,
+                        icon: Icons.calendar_today,
+                        title: 'Yeni Rezervasyon Yap',
+                        subtitle: 'Haftalık menüden seçimini yap ve yerini ayırt.',
+                        onTap: () {
+                          context.go('/menu');
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: _buildWebQuickActionCard(
+                        context,
+                        icon: Icons.account_balance_wallet,
+                        title: 'Bakiye Yükle',
+                        subtitle: 'Hesabına güvenli bir şekilde para ekle.',
+                        onTap: () {
+                          context.go('/balance');
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: _buildWebQuickActionCard(
+                        context,
+                        icon: Icons.swap_horiz,
+                        title: 'Para Transfer Et',
+                        subtitle: 'Arkadaşlarına kolayca bakiye gönder.',
+                        onTap: () {
+                          context.go('/swap');
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 48),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeroActionButton(
-    BuildContext context, {
-    required String label,
-    required IconData icon,
-    required VoidCallback onTap,
-    bool isPrimary = false,
-  }) {
-    return Material(
-      color: isPrimary ? AppColors.primaryOrange : AppColors.webCard,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: isPrimary ? Colors.white : AppColors.primaryOrange,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: isPrimary ? Colors.white : AppColors.primaryOrange,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBalanceSummaryCard(BuildContext context, user) {
+  // Yeni Web Widget'ları
+  
+  Widget _buildWebBalanceCard(BuildContext context, user) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          context.go('/balance');
+        },
+        child: Container(
+          height: 200,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.secondaryGreen,
+                AppColors.secondaryGreen.withValues(alpha: 0.8),
+                const Color(0xFF10B981), // Emerald-500
+              ],
+              stops: const [0.0, 0.5, 1.0],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.secondaryGreen.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 15,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.account_balance_wallet_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Mevcut Bakiyeniz',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.3,
+                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      Helpers.formatCurrency(user.balance),
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            fontSize: 32,
+                            letterSpacing: -1.0,
+                            height: 1.1,
+                          ),
+                    ),
+                  ],
+                ),
+                // Buton
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        context.go('/balance');
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(
+                              Icons.add_circle_outline_rounded,
+                              color: AppColors.secondaryGreen,
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Bakiye Yükle',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: AppColors.secondaryGreen,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWebNextReservationCard(BuildContext context, reservation) {
+    if (reservation == null) {
+      return Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: AppColors.webCard,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.getShadow(context).withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.event_busy,
+                size: 48,
+                color: AppColors.grey400,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Yaklaşan rezervasyon yok',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.grey500,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Meal görselini provider'dan al
+    final mealProvider = Provider.of<MealProvider>(context);
+    MealModel? meal;
+    try {
+      meal = mealProvider.meals.firstWhere(
+        (m) => m.id == reservation.mealId,
+      );
+    } catch (e) {
+      meal = null;
+    }
+    final mealImageUrl = meal?.imageUrl;
+
+    // Tarih formatlaması - "Yarın" veya tarih
+    String dateText;
+    final now = DateTime.now();
+    final reservationDate = reservation.mealDate;
+    final difference = reservationDate.difference(now);
+    
+    if (difference.inDays == 0) {
+      dateText = 'Bugün, ${Helpers.formatDate(reservationDate, 'HH:mm')}';
+    } else if (difference.inDays == 1) {
+      dateText = 'Yarın, ${Helpers.formatDate(reservationDate, 'HH:mm')}';
+    } else {
+      dateText = Helpers.formatDate(reservationDate, 'd MMMM, HH:mm');
+    }
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      height: 200,
       decoration: BoxDecoration(
         color: AppColors.webCard,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.grey200),
         boxShadow: [
           BoxShadow(
-            color: AppColors.getShadow(context).withValues(alpha: 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 12),
+            color: AppColors.getShadow(context).withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            'Bakiyen',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.grey900,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            Helpers.formatCurrency(user.balance),
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primaryOrange,
-                ),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryOrange,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+          // Sol taraf - Bilgiler
+          Expanded(
+            flex: 3,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sıradaki Rezervasyonunuz',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.grey900,
+                              fontSize: 16,
+                            ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        dateText,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: AppColors.grey600,
+                              fontSize: 14,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        reservation.mealName,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.grey900,
+                              fontSize: 18,
+                            ),
+                      ),
+                    ],
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      if (Helpers.isWeb(context)) {
+                        context.push('/reservation/${reservation.id}');
+                      } else {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ReservationDetailScreen(reservation: reservation),
+                          ),
+                        );
+                      }
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: AppColors.grey300),
+                      ),
+                    ),
+                    child: Text(
+                      'Detayları Gör',
+                      style: TextStyle(
+                        color: AppColors.grey700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const BalanceScreen()),
-                );
-              },
-              icon: const Icon(Icons.account_balance_wallet_outlined),
-              label: const Text('Bakiye Yükle'),
+            ),
+          ),
+          // Sağ taraf - Görsel alanı
+          Expanded(
+            flex: 2,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
+                ),
+                color: AppColors.grey100,
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
+                ),
+                child: mealImageUrl != null && mealImageUrl.isNotEmpty
+                    ? Image.network(
+                        mealImageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => _buildMealPlaceholder(),
+                      )
+                    : _buildMealPlaceholder(),
+              ),
             ),
           ),
         ],
@@ -969,66 +1070,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildQuickActionsPanel(BuildContext context) {
+  Widget _buildMealPlaceholder() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.webCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.grey200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Hızlı İşlemler',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.grey900,
-                ),
-          ),
-          const SizedBox(height: 16),
-          _buildQuickActionTile(
-            context,
-            icon: Icons.restaurant_menu,
-            title: 'Menüyü İncele',
-            subtitle: 'Bugünkü yemekleri görüntüle',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CreateReservationScreen()),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          _buildQuickActionTile(
-            context,
-            icon: Icons.swap_horiz,
-            title: 'Transfer Pazarı',
-            subtitle: 'Takas fırsatlarını keşfet',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SwapScreen()),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          _buildQuickActionTile(
-            context,
-            icon: Icons.receipt_long,
-            title: 'Rezervasyon Geçmişi',
-            subtitle: 'Tüm geçmiş işlemlerini gör',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ReservationListScreen()),
-              );
-            },
-          ),
-        ],
+      color: AppColors.grey100,
+      child: Center(
+        child: Icon(
+          Icons.restaurant,
+          size: 64,
+          color: AppColors.grey300,
+        ),
       ),
     );
   }
 
-  Widget _buildQuickActionTile(
+  Widget _buildWebQuickActionCard(
     BuildContext context, {
     required IconData icon,
     required String title,
@@ -1038,117 +1093,58 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.webCard,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.getShadow(context).withValues(alpha: 0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
+                  color: AppColors.secondaryGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, color: AppColors.primaryOrange),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.grey900,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.grey600,
-                          ),
-                    ),
-                  ],
+                child: Icon(
+                  icon,
+                  color: AppColors.secondaryGreen,
+                  size: 28,
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.grey400),
+              const SizedBox(height: 20),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.grey900,
+                      fontSize: 18,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.grey600,
+                      fontSize: 14,
+                    ),
+              ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildInsightsPanel(
-    BuildContext context, {
-    required int upcomingCount,
-    required int totalReservations,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.webCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.grey200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Hızlı Bakış',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.grey900,
-                ),
-          ),
-          const SizedBox(height: 16),
-          _buildInsightMetric(
-            context,
-            label: 'Aktif Rezervasyon',
-            value: upcomingCount.toString(),
-          ),
-          const SizedBox(height: 12),
-          _buildInsightMetric(
-            context,
-            label: 'Toplam Rezervasyon',
-            value: totalReservations.toString(),
-          ),
-          const SizedBox(height: 12),
-          _buildInsightMetric(
-            context,
-            label: 'Son Güncelleme',
-            value: Helpers.formatDate(DateTime.now(), 'd MMMM, HH:mm'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInsightMetric(
-    BuildContext context, {
-    required String label,
-    required String value,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.grey600,
-              ),
-        ),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.grey900,
-              ),
-        ),
-      ],
     );
   }
 }

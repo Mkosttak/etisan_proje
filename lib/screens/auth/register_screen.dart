@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
@@ -6,7 +7,6 @@ import '../../core/widgets/custom_button.dart';
 import '../../core/widgets/custom_text_field.dart';
 import '../../core/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
-import '../home/main_navigation.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -84,9 +84,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
 
         if (success) {
           Helpers.showSnackBar(context, AppStrings.tr['registerSuccess']!);
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const MainNavigation()),
-          );
+          if (mounted) {
+            context.go('/home');
+          }
         } else {
           Helpers.showSnackBar(
             context,

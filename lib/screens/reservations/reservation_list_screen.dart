@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/layout/app_page_container.dart';
+import '../../core/layout/web_layout.dart';
 import '../../core/utils/helpers.dart';
 import '../../core/widgets/loading_widget.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reservation_provider.dart';
-import 'create_reservation_screen.dart';
 import 'reservation_detail_screen.dart';
 
 class ReservationListScreen extends StatefulWidget {
@@ -64,6 +65,7 @@ class _ReservationListScreenState extends State<ReservationListScreen>
     final authProvider = Provider.of<AuthProvider>(context);
     final reservationProvider = Provider.of<ReservationProvider>(context);
     final user = authProvider.currentUser;
+    final isWeb = Helpers.isWeb(context);
 
     if (user == null) {
       return const Scaffold(body: Center(child: LoadingWidget()));
@@ -87,44 +89,52 @@ class _ReservationListScreenState extends State<ReservationListScreen>
         .toList()
       ..sort((a, b) => b.mealDate.compareTo(a.mealDate));
 
-    return Scaffold(
-      backgroundColor: AppColors.getBackground(context),
-      body: SafeArea(
-        child: AppPageContainer(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: isLoading
-              ? const LoadingWidget()
-              : Column(
-                  children: [
-                    _buildHeroSection(
-                      activeCount: upcomingReservations.length,
-                      pastCount: pastReservations.length,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTabSwitcher(),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            _buildReservationList(
-                              upcomingReservations,
-                              isUpcoming: true,
-                            ),
-                            _buildReservationList(
-                              pastReservations,
-                              isUpcoming: false,
-                            ),
-                          ],
-                        ),
+    final content = SafeArea(
+      child: AppPageContainer(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: isLoading
+            ? const LoadingWidget()
+            : Column(
+                children: [
+                  _buildHeroSection(
+                    activeCount: upcomingReservations.length,
+                    pastCount: pastReservations.length,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTabSwitcher(),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildReservationList(
+                            upcomingReservations,
+                            isUpcoming: true,
+                          ),
+                          _buildReservationList(
+                            pastReservations,
+                            isUpcoming: false,
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-        ),
+                  ),
+                ],
+              ),
       ),
+    );
+
+    if (isWeb) {
+      return WebLayout(
+        child: content,
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.getBackground(context),
+      body: content,
     );
   }
 
@@ -215,11 +225,15 @@ class _ReservationListScreenState extends State<ReservationListScreen>
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ReservationDetailScreen(reservation: reservation),
-              ),
-            );
+            if (Helpers.isWeb(context)) {
+              context.push('/reservation/${reservation.id}');
+            } else {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ReservationDetailScreen(reservation: reservation),
+                ),
+              );
+            }
           },
           child: Container(
             padding: const EdgeInsets.all(20),

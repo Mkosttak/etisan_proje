@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/layout/app_page_container.dart';
+import '../../core/layout/web_layout.dart';
 import '../../core/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/meal_provider.dart';
@@ -176,52 +177,44 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
   }
 
   Widget _buildWebLayout(BuildContext context, MealProvider mealProvider) {
-    return Scaffold(
-      backgroundColor: AppColors.webBackground,
-      body: SafeArea(
-        child: AppPageContainer(
-          padding: const EdgeInsets.symmetric(vertical: 32),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 40),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildWebHeader(mealProvider),
-                const SizedBox(height: 24),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final useTwoColumns = constraints.maxWidth > 960;
-
-                    final filters = SizedBox(
-                      width: useTwoColumns ? 260 : double.infinity,
-                      child: _buildWebFilters(mealProvider),
-                    );
-
-                    if (useTwoColumns) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          filters,
-                          const SizedBox(width: 24),
-                          Expanded(child: _buildWebMealSections(mealProvider)),
-                        ],
-                      );
-                    }
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        filters,
-                        const SizedBox(height: 24),
-                        _buildWebMealSections(mealProvider),
-                      ],
-                    );
-                  },
+    return WebLayout(
+      child: Row(
+        children: [
+          // Sol Filtre Paneli
+          Container(
+            width: 320,
+            decoration: BoxDecoration(
+              color: AppColors.webCard,
+              border: Border(
+                right: BorderSide(
+                  color: AppColors.grey200,
+                  width: 1,
                 ),
-              ],
+              ),
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: _buildWebFilters(mealProvider),
             ),
           ),
-        ),
+          // Ana İçerik
+          Expanded(
+            child: Container(
+              color: AppColors.webBackground,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildWebHeader(context, mealProvider),
+                    const SizedBox(height: 16),
+                    _buildWebMealSections(mealProvider),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -395,284 +388,527 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
     );
   }
 
-  Widget _buildWebHeader(MealProvider mealProvider) {
+  Widget _buildWebHeader(BuildContext context, MealProvider mealProvider) {
+    final cartProvider = Provider.of<CartProvider>(context);
     final formattedDate = _formatWebDate(_selectedDate);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-      decoration: BoxDecoration(
-        color: AppColors.webCard,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Menü - $formattedDate',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Günün yemek seçeneklerini keşfet',
-                  style: TextStyle(
-                    color: AppColors.grey600,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildWebDateButton(
-                Icons.chevron_left,
-                () => _changeDate(mealProvider, -1),
-              ),
-              const SizedBox(width: 12),
-              _buildWebDateButton(
-                Icons.chevron_right,
-                () => _changeDate(mealProvider, 1),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWebFilters(MealProvider mealProvider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildWebFilterGroup(
-          title: 'Yemekhane',
-          children: [
-            _buildWebFilterOption(
-              mealProvider,
-              'cafeteria-1',
-              'Merkez',
-              Icons.storefront,
-            ),
-            _buildWebFilterOption(
-              mealProvider,
-              'cafeteria-2',
-              'Mühendislik',
-              Icons.engineering,
-            ),
-            _buildWebFilterOption(
-              mealProvider,
-              'cafeteria-3',
-              'Tıp',
-              Icons.local_hospital,
-            ),
-          ],
+        Text(
+          'Menü - $formattedDate',
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.grey900,
+          ),
         ),
-        const SizedBox(height: 20),
-        _buildWebFilterGroup(
-          title: 'Diyet',
+        // Sepet İkonu
+        Stack(
           children: [
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _buildWebDietChip(
-                  mealProvider,
-                  null,
-                  'Hepsi',
-                  Icons.grid_view,
-                ),
-                _buildWebDietChip(
-                  mealProvider,
-                  'normal',
-                  'Normal',
-                  Icons.restaurant,
-                ),
-                _buildWebDietChip(
-                  mealProvider,
-                  'vegetarian',
-                  'Vejetaryen',
-                  Icons.eco,
-                ),
-                _buildWebDietChip(
-                  mealProvider,
-                  'vegan',
-                  'Vegan',
-                  Icons.spa,
-                ),
-                _buildWebDietChip(
-                  mealProvider,
-                  'gluten_free',
-                  'Glutensiz',
-                  Icons.grain,
-                ),
-              ],
+            IconButton(
+              onPressed: () {
+                // Sepet sayfasına git - CartScreen'e yönlendir
+                context.push('/cart');
+              },
+              icon: const Icon(
+                Icons.shopping_cart_outlined,
+                size: 28,
+                color: AppColors.grey700,
+              ),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                padding: const EdgeInsets.all(8),
+              ),
             ),
+            if (cartProvider.itemCount > 0)
+              Positioned(
+                right: 4,
+                top: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: AppColors.error,
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 20,
+                    minHeight: 20,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${cartProvider.itemCount}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildWebFilterGroup({
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.webCard,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+  Widget _buildWebFilters(MealProvider mealProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // E TİSAN Yemekhane Başlığı
+        Row(
+          children: [
+            const Icon(
+              Icons.restaurant_menu,
+              size: 24,
+              color: AppColors.primaryOrange,
             ),
-          ),
-          const SizedBox(height: 16),
-          ...children,
-        ],
-      ),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                'E TİSAN Yemekhane',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.grey900,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Tarih Seçimi
+        _buildWebDateSelector(mealProvider),
+        const SizedBox(height: 16),
+        // Yemekhane Seçimi
+        _buildWebCafeteriaSelector(mealProvider),
+        const SizedBox(height: 16),
+        // Diyet Seçimi
+        _buildWebDietSelector(mealProvider),
+        const SizedBox(height: 12), // Alt boşluk
+      ],
     );
   }
 
-  Widget _buildWebFilterOption(
-    MealProvider mealProvider,
-    String cafeteriaId,
-    String label,
-    IconData icon,
-  ) {
-    final isSelected = mealProvider.selectedCafeteriaId == cafeteriaId;
+  Widget _buildWebDateSelector(MealProvider mealProvider) {
+    // Seçili tarihin öncesi, kendisi ve sonrası
+    final prevDate = _selectedDate.add(const Duration(days: -1));
+    final nextDate = _selectedDate.add(const Duration(days: 1));
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () {
-          if (!isSelected) {
-            mealProvider.setCafeteriaFilter(cafeteriaId);
-          }
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color:
-                isSelected ? AppColors.primaryOrange.withOpacity(0.12) : null,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isSelected
-                  ? AppColors.primaryOrange
-                  : AppColors.grey200,
-              width: 1.4,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'Tarih',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.grey900,
           ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 75,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                icon,
-                color:
-                    isSelected ? AppColors.primaryOrange : AppColors.grey500,
+              // Sol ok butonu
+              IconButton(
+                onPressed: () => _scrollDateSelector(mealProvider, -1),
+                icon: const Icon(
+                  Icons.chevron_left,
+                  color: AppColors.grey500,
+                  size: 20,
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
+                ),
+                padding: EdgeInsets.zero,
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
+              // Önceki tarih
               Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontWeight:
-                        isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected
-                        ? AppColors.primaryOrange
-                        : AppColors.grey700,
-                  ),
+                child: _buildDateCard(prevDate, false, mealProvider),
+              ),
+              const SizedBox(width: 8),
+              // Seçili tarih (orta)
+              Expanded(
+                flex: 2,
+                child: _buildDateCard(_selectedDate, true, mealProvider),
+              ),
+              const SizedBox(width: 8),
+              // Sonraki tarih
+              Expanded(
+                child: _buildDateCard(nextDate, false, mealProvider),
+              ),
+              const SizedBox(width: 8),
+              // Sağ ok butonu
+              IconButton(
+                onPressed: () => _scrollDateSelector(mealProvider, 1),
+                icon: const Icon(
+                  Icons.chevron_right,
+                  color: AppColors.grey500,
+                  size: 20,
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
+                ),
+                padding: EdgeInsets.zero,
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.transparent,
                 ),
               ),
-              if (isSelected)
-                const Icon(
-                  Icons.check_circle,
-                  color: AppColors.primaryOrange,
-                ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateCard(DateTime date, bool isSelected, MealProvider mealProvider) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedDate = date;
+        });
+        mealProvider.setDateFilter(date);
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryOrange
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primaryOrange
+                : AppColors.grey200,
+            width: 1,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              _getDayName(date.weekday),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: isSelected
+                    ? AppColors.grey800
+                    : AppColors.grey500,
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              '${date.day}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isSelected
+                    ? AppColors.grey800
+                    : AppColors.grey900,
+                height: 1.1,
+              ),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              _getMonthName(date.month),
+              style: TextStyle(
+                fontSize: 9,
+                color: isSelected
+                    ? AppColors.grey800
+                    : AppColors.grey500,
+                height: 1.2,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildWebDietChip(
-    MealProvider mealProvider,
-    String? type,
-    String label,
-    IconData icon,
-  ) {
-    final isSelected =
-        type == null ? mealProvider.selectedMealType == null : mealProvider.selectedMealType == type;
+  void _scrollDateSelector(MealProvider mealProvider, int days) {
+    // Tarihi değiştir
+    setState(() {
+      _selectedDate = _selectedDate.add(Duration(days: days));
+    });
+    mealProvider.setDateFilter(_selectedDate);
+  }
 
-    return FilterChip(
-      selected: isSelected,
-      onSelected: (_) {
-        if (type == null) {
-          mealProvider.setMealTypeFilter(null);
-        } else {
-          mealProvider.setMealTypeFilter(isSelected ? null : type);
-        }
-      },
-      avatar: Icon(
-        icon,
-        size: 18,
-        color: isSelected ? Colors.white : AppColors.primaryOrange,
-      ),
-      showCheckmark: false,
-      backgroundColor: AppColors.primaryOrange.withOpacity(0.08),
-      selectedColor: AppColors.primaryOrange,
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : AppColors.primaryOrange,
-        fontWeight: FontWeight.w600,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      label: Text(label),
+  Widget _buildWebCafeteriaSelector(MealProvider mealProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'Yemekhane',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.grey900,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: AppColors.grey50,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppColors.grey200,
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildWebRadioOption(
+                mealProvider,
+                'cafeteria-1',
+                'Merkez',
+                Icons.restaurant,
+                onTap: () => mealProvider.setCafeteriaFilter('cafeteria-1'),
+              ),
+              const SizedBox(height: 6),
+              _buildWebRadioOption(
+                mealProvider,
+                'cafeteria-2',
+                'Mühendislik',
+                Icons.engineering,
+                onTap: () => mealProvider.setCafeteriaFilter('cafeteria-2'),
+              ),
+              const SizedBox(height: 6),
+              _buildWebRadioOption(
+                mealProvider,
+                'cafeteria-3',
+                'Tıp',
+                Icons.local_hospital,
+                onTap: () => mealProvider.setCafeteriaFilter('cafeteria-3'),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
+
+  Widget _buildWebRadioOption(
+    MealProvider mealProvider,
+    String value,
+    String label,
+    IconData icon, {
+    required VoidCallback onTap,
+  }) {
+    final isSelected = mealProvider.selectedCafeteriaId == value;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFFFFF9C4) // yellow-100
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          children: [
+            Radio<String>(
+              value: value,
+              groupValue: mealProvider.selectedCafeteriaId,
+              onChanged: (_) => onTap(),
+              activeColor: AppColors.primaryOrange,
+              fillColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.primaryOrange;
+                }
+                return AppColors.grey400;
+              }),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+            ),
+            Icon(
+              icon,
+              color: isSelected
+                  ? AppColors.primaryOrange
+                  : AppColors.grey500,
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: isSelected
+                      ? AppColors.grey900
+                      : AppColors.grey700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWebDietSelector(MealProvider mealProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'Diyet',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.grey900,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: AppColors.grey50,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppColors.grey200,
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildWebDietRadioOption(
+                mealProvider,
+                null,
+                'Normal',
+                Icons.restaurant_menu,
+                onTap: () => mealProvider.setMealTypeFilter(null),
+              ),
+              const SizedBox(height: 6),
+              _buildWebDietRadioOption(
+                mealProvider,
+                'vegetarian',
+                'Vejetaryen',
+                Icons.eco,
+                onTap: () => mealProvider.setMealTypeFilter('vegetarian'),
+              ),
+              const SizedBox(height: 6),
+              _buildWebDietRadioOption(
+                mealProvider,
+                'vegan',
+                'Vegan',
+                Icons.grass,
+                onTap: () => mealProvider.setMealTypeFilter('vegan'),
+              ),
+              const SizedBox(height: 6),
+              _buildWebDietRadioOption(
+                mealProvider,
+                'gluten_free',
+                'Glutensiz',
+                Icons.grain,
+                onTap: () => mealProvider.setMealTypeFilter('gluten_free'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWebDietRadioOption(
+    MealProvider mealProvider,
+    String? value,
+    String label,
+    IconData icon, {
+    required VoidCallback onTap,
+  }) {
+    final isSelected = mealProvider.selectedMealType == value;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFFFFF9C4) // yellow-100
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          children: [
+            Radio<String?>(
+              value: value,
+              groupValue: mealProvider.selectedMealType,
+              onChanged: (_) => onTap(),
+              activeColor: AppColors.primaryOrange,
+              fillColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.primaryOrange;
+                }
+                return AppColors.grey400;
+              }),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+            ),
+            Icon(
+              icon,
+              color: isSelected
+                  ? AppColors.primaryOrange
+                  : AppColors.grey500,
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: isSelected
+                      ? AppColors.grey900
+                      : AppColors.grey700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildWebMealSections(MealProvider mealProvider) {
     if (mealProvider.isLoading) {
       return Container(
-        padding: const EdgeInsets.all(48),
+        padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
           color: AppColors.webCard,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -684,22 +920,23 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
 
     if (mealProvider.errorMessage != null) {
       return Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.webCard,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.error.withOpacity(0.2)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
-            const Icon(Icons.error_outline, color: AppColors.error),
-            const SizedBox(width: 12),
+            const Icon(Icons.error_outline, color: AppColors.error, size: 20),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 mealProvider.errorMessage!,
                 style: const TextStyle(
                   color: AppColors.error,
                   fontWeight: FontWeight.w600,
+                  fontSize: 12,
                 ),
               ),
             ),
@@ -718,7 +955,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
       children: [
         for (var i = 0; i < sections.length; i++) ...[
           _buildWebMealSection(mealProvider, sections[i]),
-          if (i != sections.length - 1) const SizedBox(height: 28),
+          if (i != sections.length - 1) const SizedBox(height: 16),
         ],
       ],
     );
@@ -733,72 +970,93 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
         .where((meal) => meal.mealPeriod == period)
         .toList();
 
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: AppColors.webCard,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Kategori Başlığı - Modern Tasarım
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primaryOrange.withValues(alpha: 0.1),
+                AppColors.primaryOrange.withValues(alpha: 0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.primaryOrange.withValues(alpha: 0.2),
+              width: 1,
+            ),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+          child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.primaryOrange,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   section['icon'] as IconData,
-                  color: AppColors.primaryOrange,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Text(
-                section['title'] as String,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                  size: 18,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(width: 12),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Text(
-                  '${meals.length} seçenek',
-                  style: const TextStyle(
-                    color: AppColors.primaryOrange,
-                    fontWeight: FontWeight.w600,
-                  ),
+              Text(
+                section['title'] as String,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.grey900,
+                  letterSpacing: 0.3,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          if (meals.isEmpty)
-            _buildWebEmptyState(section['title'] as String)
-          else
-            Wrap(
-              spacing: 20,
-              runSpacing: 20,
-              children: meals.map(_buildWebMealCard).toList(),
-            ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        // Yemek Kartları (Grid Layout)
+        if (meals.isEmpty)
+          _buildWebEmptyState(section['title'] as String)
+        else
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Daha fazla sütun göster - ekranda daha çok kart görünsün
+              final crossAxisCount = constraints.maxWidth > 1400
+                  ? 6
+                  : constraints.maxWidth > 1100
+                      ? 5
+                      : constraints.maxWidth > 900
+                          ? 4
+                          : constraints.maxWidth > 700
+                              ? 3
+                              : 2;
+              // Aspect ratio - kartların genişlik/yükseklik oranı
+              // Daha düşük değer = daha yüksek kartlar (büyük butonlar için yeterli alan)
+              final childAspectRatio = constraints.maxWidth > 800 ? 1.3 : 1.2;
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: childAspectRatio,
+                ),
+                itemCount: meals.length,
+                itemBuilder: (context, index) {
+                  return _buildWebMealCard(meals[index]);
+                },
+              );
+            },
+          ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 
@@ -806,161 +1064,13 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
     return Consumer<CartProvider>(
       builder: (context, cartProvider, child) {
         final isInCart = cartProvider.isMealInCart(meal.id);
-
-        return Container(
-          width: 320,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppColors.webCard,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.grey200),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 18,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          meal.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          meal.description,
-                          style: const TextStyle(
-                            color: AppColors.grey600,
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryOrange.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Text(
-                      Helpers.formatCurrency(meal.reservationPrice),
-                      style: const TextStyle(
-                        color: AppColors.primaryOrange,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildWebTag(Icons.schedule, Helpers.formatDate(meal.mealDate, 'HH:mm')),
-                  _buildWebTag(
-                    Icons.restaurant,
-                    _getMealTypeLabel(meal.mealType),
-                  ),
-                  _buildWebTag(
-                    Icons.people_alt_outlined,
-                    '${meal.availableSpots}/${meal.totalSpots} kontenjan',
-                  ),
-                  if (meal.allergens.isNotEmpty)
-                    _buildWebTag(
-                      Icons.warning_amber_rounded,
-                      'Alerjen: ${meal.allergens.join(', ')}',
-                    ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () => _addToCart(meal, isInCart),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primaryOrange,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      icon: Icon(
-                        isInCart ? Icons.check : Icons.shopping_bag_outlined,
-                      ),
-                      label: Text(isInCart ? 'Sepette' : 'Sepete Ekle'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _quickReserve(meal),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: const BorderSide(color: AppColors.primaryOrange),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        foregroundColor: AppColors.primaryOrange,
-                      ),
-                      icon: const Icon(Icons.flash_on),
-                      label: const Text('Hızlı Al'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        return _ModernMealCard(
+          meal: meal,
+          isInCart: isInCart,
+          onAddToCart: () => _addToCart(meal, isInCart),
+          onQuickReserve: () => _quickReserve(meal),
         );
       },
-    );
-  }
-
-  Widget _buildWebTag(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.grey100,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: AppColors.grey600),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.grey700,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1003,46 +1113,8 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
     );
   }
 
-  Widget _buildWebDateButton(IconData icon, VoidCallback onPressed) {
-    return SizedBox(
-      height: 44,
-      width: 44,
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          side: const BorderSide(color: AppColors.primaryOrange),
-        ),
-        onPressed: onPressed,
-        child: Icon(icon, color: AppColors.primaryOrange),
-      ),
-    );
-  }
-
-  void _changeDate(MealProvider mealProvider, int offsetDays) {
-    setState(() {
-      _selectedDate = _selectedDate.add(Duration(days: offsetDays));
-    });
-    mealProvider.setDateFilter(_selectedDate);
-  }
-
   String _formatWebDate(DateTime date) {
     return '${date.day} ${_getFullMonthName(date.month)} ${_getFullDayName(date.weekday)}';
-  }
-
-  String _getMealTypeLabel(String mealType) {
-    switch (mealType) {
-      case 'vegetarian':
-        return 'Vejetaryen';
-      case 'vegan':
-        return 'Vegan';
-      case 'gluten_free':
-        return 'Glutensiz';
-      default:
-        return 'Normal';
-    }
   }
 
 
@@ -1689,5 +1761,418 @@ class _CreateReservationScreenState extends State<CreateReservationScreen>
   String _getMonthName(int month) {
     const months = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
     return months[month - 1];
+  }
+}
+
+// Modern Meal Card Widget - Hover efektleri ile
+class _ModernMealCard extends StatefulWidget {
+  final MealModel meal;
+  final bool isInCart;
+  final VoidCallback onAddToCart;
+  final VoidCallback onQuickReserve;
+
+  const _ModernMealCard({
+    required this.meal,
+    required this.isInCart,
+    required this.onAddToCart,
+    required this.onQuickReserve,
+  });
+
+  @override
+  State<_ModernMealCard> createState() => _ModernMealCardState();
+}
+
+class _ModernMealCardState extends State<_ModernMealCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+        decoration: BoxDecoration(
+          color: AppColors.webCard,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _isHovered
+                ? AppColors.primaryOrange.withValues(alpha: 0.5)
+                : AppColors.grey200.withValues(alpha: 0.5),
+            width: _isHovered ? 1.5 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _isHovered
+                  ? AppColors.primaryOrange.withValues(alpha: 0.15)
+                  : Colors.black.withValues(alpha: 0.06),
+              blurRadius: _isHovered ? 12 : 8,
+              offset: Offset(0, _isHovered ? 4 : 2),
+              spreadRadius: _isHovered ? 2 : 0,
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // İçerik Bölümü - Modern Tasarım
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white,
+                    AppColors.grey50.withValues(alpha: 0.3),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Başlık ve Fiyat
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.meal.name,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.grey900,
+                            height: 1.25,
+                            letterSpacing: 0.1,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primaryOrange,
+                              AppColors.primaryOrange.withValues(alpha: 0.9),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryOrange.withValues(alpha: 0.3),
+                              blurRadius: 3,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          Helpers.formatCurrency(widget.meal.reservationPrice),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  // Açıklama
+                  Text(
+                    widget.meal.description,
+                    style: TextStyle(
+                      color: AppColors.grey600,
+                      fontSize: 10,
+                      height: 1.35,
+                      letterSpacing: 0.05,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            // Buton Bölümü - Modern ve Büyük Tasarım
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.grey50,
+                    AppColors.grey100.withValues(alpha: 0.2),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Sepete Ekle Butonu (Outline) - Modern ve Büyük
+                  Expanded(
+                    child: _ModernButton(
+                      onPressed: widget.onAddToCart,
+                      isOutlined: true,
+                      isSelected: widget.isInCart,
+                      icon: widget.isInCart ? Icons.check_circle : Icons.add_shopping_cart,
+                      label: widget.isInCart ? 'Sepette' : 'Sepete Ekle',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Hızlı Al Butonu (Dolu) - Modern ve Büyük
+                  Expanded(
+                    child: _ModernButton(
+                      onPressed: widget.onQuickReserve,
+                      isOutlined: false,
+                      icon: Icons.bolt,
+                      label: 'Hızlı Al',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Modern Buton Widget - Hover ve animasyon efektleri ile
+class _ModernButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  final bool isOutlined;
+  final bool isSelected;
+  final IconData icon;
+  final String label;
+
+  const _ModernButton({
+    required this.onPressed,
+    required this.isOutlined,
+    this.isSelected = false,
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  State<_ModernButton> createState() => _ModernButtonState();
+}
+
+class _ModernButtonState extends State<_ModernButton> with SingleTickerProviderStateMixin {
+  bool _isHovered = false;
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.isOutlined) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) {
+          setState(() => _isHovered = true);
+          _animationController.forward();
+        },
+        onExit: (_) {
+          setState(() => _isHovered = false);
+          _animationController.reverse();
+        },
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: _isHovered
+                  ? LinearGradient(
+                      colors: widget.isSelected
+                          ? [
+                              AppColors.secondaryGreen.withValues(alpha: 0.15),
+                              AppColors.secondaryGreen.withValues(alpha: 0.2),
+                            ]
+                          : [
+                              AppColors.primaryOrange.withValues(alpha: 0.1),
+                              AppColors.primaryOrange.withValues(alpha: 0.15),
+                            ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: widget.isSelected
+                    ? AppColors.secondaryGreen
+                    : AppColors.primaryOrange,
+                width: _isHovered ? 2.5 : 2,
+              ),
+              boxShadow: _isHovered
+                  ? [
+                      BoxShadow(
+                        color: (widget.isSelected
+                                ? AppColors.secondaryGreen
+                                : AppColors.primaryOrange)
+                            .withValues(alpha: 0.2),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onPressed,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        widget.icon,
+                        size: 18,
+                        color: widget.isSelected
+                            ? AppColors.secondaryGreen
+                            : AppColors.primaryOrange,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          widget.label,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            letterSpacing: 0.3,
+                            color: widget.isSelected
+                                ? AppColors.secondaryGreen
+                                : AppColors.primaryOrange,
+                          ),
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      // Hızlı Al Butonu (Dolu)
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) {
+          setState(() => _isHovered = true);
+          _animationController.forward();
+        },
+        onExit: (_) {
+          setState(() => _isHovered = false);
+          _animationController.reverse();
+        },
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _isHovered
+                    ? [
+                        AppColors.primaryOrange,
+                        AppColors.secondaryOrange,
+                      ]
+                    : [
+                        AppColors.primaryOrange,
+                        AppColors.primaryOrange.withValues(alpha: 0.9),
+                      ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryOrange.withValues(
+                    alpha: _isHovered ? 0.6 : 0.4,
+                  ),
+                  blurRadius: _isHovered ? 10 : 6,
+                  offset: Offset(0, _isHovered ? 5 : 3),
+                  spreadRadius: _isHovered ? 2 : 0,
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onPressed,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        widget.icon,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          widget.label,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            letterSpacing: 0.4,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

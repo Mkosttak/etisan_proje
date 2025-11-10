@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/helpers.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import 'home_screen.dart';
 import '../reservations/reservation_list_screen.dart';
 import '../reservations/create_reservation_screen.dart';
-import '../reservations/cart_screen.dart';
 import '../swap/swap_screen.dart';
-import '../balance/balance_screen.dart';
-import '../profile/profile_screen.dart';
-// Profile is opened from Home header; no separate tab
 
 class MainNavigation extends StatefulWidget {
   final int initialIndex;
@@ -25,50 +21,54 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   late int _currentIndex;
 
-  late final List<Widget> _screens;
-
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    _screens = const [
-      HomeScreen(),
-      ReservationListScreen(),
-      CreateReservationScreen(),
-      SwapScreen(),
-    ];
+  }
+
+  @override
+  void didUpdateWidget(MainNavigation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Widget güncellendiğinde (örneğin route değiştiğinde) index'i güncelle
+    if (oldWidget.initialIndex != widget.initialIndex) {
+      _currentIndex = widget.initialIndex;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isWeb = Helpers.isWeb(context);
 
+    // Web için sayfalar kendi WebLayout'unu kullanıyor, bu yüzden direkt sayfayı göster
     if (isWeb) {
-      return Scaffold(
-        backgroundColor: AppColors.webBackground,
-        body: Row(
-          children: [
-            _buildWebSidebar(context),
-            Expanded(
-              child: Container(
-                color: AppColors.webBackground,
-                child: IndexedStack(
-                  index: _currentIndex,
-                  children: _screens,
-                ),
-              ),
-            ),
-          ],
-        ),
-        floatingActionButton: _buildCartFab(context),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      );
+      // Web için route'a göre doğru sayfayı göster
+      switch (_currentIndex) {
+        case 0:
+          return const HomeScreen();
+        case 1:
+          return const ReservationListScreen();
+        case 2:
+          return const CreateReservationScreen();
+        case 3:
+          return const SwapScreen();
+        default:
+          return const HomeScreen();
+      }
     }
+
+    // Mobil için IndexedStack kullan (tüm sayfalar hafızada tutulur)
+    final screens = const [
+      HomeScreen(),
+      ReservationListScreen(),
+      CreateReservationScreen(),
+      SwapScreen(),
+    ];
 
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: screens,
       ),
       extendBody: true,
       floatingActionButton: _buildCartFab(context),
@@ -80,7 +80,7 @@ class _MainNavigationState extends State<MainNavigation> {
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: AppColors.getShadow(context).withOpacity(0.3),
+              color: AppColors.getShadow(context).withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
               spreadRadius: 0,
@@ -92,9 +92,9 @@ class _MainNavigationState extends State<MainNavigation> {
           child: Theme(
             data: Theme.of(context).copyWith(
               navigationBarTheme: NavigationBarThemeData(
-                iconTheme: MaterialStateProperty.all(const IconThemeData(size: 24)),
-                labelTextStyle: MaterialStateProperty.resolveWith((states) {
-                  if (states.contains(MaterialState.selected)) {
+                iconTheme: WidgetStateProperty.all(const IconThemeData(size: 24)),
+                labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
                     return const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -116,16 +116,28 @@ class _MainNavigationState extends State<MainNavigation> {
             child: NavigationBar(
               selectedIndex: _currentIndex,
               onDestinationSelected: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
+                // GoRouter ile navigasyon (widget yeniden oluşturulacak ve index güncellenecek)
+                switch (index) {
+                  case 0:
+                    context.go('/home');
+                    break;
+                  case 1:
+                    context.go('/reservations');
+                    break;
+                  case 2:
+                    context.go('/menu');
+                    break;
+                  case 3:
+                    context.go('/swap');
+                    break;
+                }
               },
               backgroundColor: Colors.transparent,
               elevation: 0,
-              indicatorColor: AppColors.primaryOrange.withOpacity(0.15),
+              indicatorColor: AppColors.primaryOrange.withValues(alpha: 0.15),
               height: 64,
               labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-              overlayColor: MaterialStateProperty.all(Colors.transparent),
+              overlayColor: WidgetStateProperty.all(Colors.transparent),
             destinations: [
               NavigationDestination(
                 icon: Icon(
@@ -140,25 +152,25 @@ class _MainNavigationState extends State<MainNavigation> {
               ),
               NavigationDestination(
                 icon: Icon(
-                  Icons.restaurant_menu_outlined,
+                  Icons.event_available_outlined,
                   color: _currentIndex == 1 ? AppColors.primaryOrange : AppColors.getIconColor(context),
                 ),
                 selectedIcon: Icon(
-                  Icons.restaurant_menu,
+                  Icons.event_available,
                   color: AppColors.primaryOrange,
                 ),
-                label: 'Rezervasyon',
+                label: 'Rezervasyonlarım',
               ),
               NavigationDestination(
                 icon: Icon(
-                  Icons.add_circle_outline,
+                  Icons.calendar_month_outlined,
                   color: _currentIndex == 2 ? AppColors.primaryOrange : AppColors.getIconColor(context),
                 ),
                 selectedIcon: Icon(
-                  Icons.add_circle,
+                  Icons.calendar_month,
                   color: AppColors.primaryOrange,
                 ),
-                label: 'Oluştur',
+                label: 'Rezervasyon Yap',
               ),
               NavigationDestination(
                 icon: Icon(
@@ -171,7 +183,6 @@ class _MainNavigationState extends State<MainNavigation> {
                 ),
                 label: 'Takas',
               ),
-              // Profile entry removed from bottom nav; accessible from Home header icon
             ],
             ),
           ),
@@ -194,7 +205,7 @@ class _MainNavigationState extends State<MainNavigation> {
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryOrange.withOpacity(0.4),
+                  color: AppColors.primaryOrange.withValues(alpha: 0.4),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                   spreadRadius: 0,
@@ -203,9 +214,7 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
             child: FloatingActionButton.extended(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const CartScreen()),
-                );
+                context.push('/cart');
               },
               backgroundColor: AppColors.primaryOrange,
               elevation: 0,
@@ -255,243 +264,4 @@ class _MainNavigationState extends State<MainNavigation> {
       },
     );
   }
-
-  Widget _buildWebSidebar(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.currentUser;
-
-    final items = [
-      _WebNavItem(
-        icon: Icons.home_outlined,
-        label: 'Ana Sayfa',
-        index: 0,
-      ),
-      _WebNavItem(
-        icon: Icons.calendar_month_outlined,
-        label: 'Haftalık Menü',
-        index: 2,
-      ),
-      _WebNavItem(
-        icon: Icons.event_available_outlined,
-        label: 'Rezervasyon Yap',
-        index: 1,
-      ),
-      _WebNavItem(
-        icon: Icons.account_balance_wallet_outlined,
-        label: 'Bakiye Yükle',
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const BalanceScreen()),
-          );
-        },
-      ),
-      _WebNavItem(
-        icon: Icons.swap_horiz_outlined,
-        label: 'Transfer Yap',
-        index: 3,
-      ),
-      _WebNavItem(
-        icon: Icons.person_outline,
-        label: 'Profilim',
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ProfileScreen()),
-          );
-        },
-      ),
-    ];
-
-    return Container(
-      width: 240,
-      decoration: BoxDecoration(
-        color: AppColors.webSidebar,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 24,
-            offset: const Offset(6, 0),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryOrange.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    Icons.restaurant,
-                    color: AppColors.primaryOrange,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'E TİSAN',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Yemekhane Sistemi',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.grey500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  final isSelected =
-                      item.index != null && _currentIndex == item.index;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () {
-                        if (item.index != null) {
-                          setState(() {
-                            _currentIndex = item.index!;
-                          });
-                        }
-                        item.onTap?.call();
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        curve: Curves.easeInOut,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              isSelected ? AppColors.webSidebarHighlight : null,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              item.icon,
-                              color: isSelected
-                                  ? AppColors.primaryOrange
-                                  : AppColors.grey500,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                item.label,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                  color: isSelected
-                                      ? AppColors.primaryOrange
-                                      : AppColors.grey600,
-                                ),
-                              ),
-                            ),
-                            if (isSelected)
-                              const Icon(
-                                Icons.chevron_right,
-                                color: AppColors.primaryOrange,
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            if (user != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: AppColors.primaryOrange.withOpacity(0.2),
-                      child: Text(
-                        user.fullName.isNotEmpty ? user.fullName[0] : '?',
-                        style: const TextStyle(
-                          color: AppColors.primaryOrange,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user.fullName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            Helpers.formatCurrency(user.balance),
-                            style: const TextStyle(
-                              color: AppColors.grey600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _WebNavItem {
-  final IconData icon;
-  final String label;
-  final int? index;
-  final VoidCallback? onTap;
-
-  _WebNavItem({
-    required this.icon,
-    required this.label,
-    this.index,
-    this.onTap,
-  });
 }
